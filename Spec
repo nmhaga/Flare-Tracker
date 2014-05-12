@@ -1,0 +1,23 @@
+				Functional Specification
+		Space Weather X-Ray flux with Active Region Numbers Display
+					Nomajama Mhaga
+				Last Update: 12 May 2014
+
+Overview
+=========
+For the new display, the program will pull data from online resources. When a flare occurs, an X-ray plot from the GOES with Active Region numbers to see which Active region the flare has come from.
+
+System Flow plan
+================
+
+
+Technical Design
+================
+MAtplotlib will be used to plot the x-ray which is going to be used in Python scrpt. The data will be pulled from online sources, insert it into a database. Every time a flare occurs i.e from C to X or higher level Class, an X-ray plot with Active Region annotation will be displayed. 
+
+Program Flow Chart
+==================
+
+
+
+
