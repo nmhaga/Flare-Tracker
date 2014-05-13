@@ -5,8 +5,8 @@
 
 This document explains the fuctional design of the X-ray plot from GOES with annotations of Active Region. 
 
-					Version 0.1
-					=========== 
+				Version 0.1
+				=========== 
 
 Overview
 =========
