@@ -3,6 +3,11 @@
 					Nomajama Mhaga
 				Last Update: 12 May 2014
 
+This document explains the fuctional design of the X-ray plot from GOES with annotations of Active Region. 
+
+					Version 0.1
+					=========== 
+
 Overview
 =========
 For the new display, the program will pull data from online resources. When a flare occurs, an X-ray plot from the GOES with Active Region numbers to see which Active region the flare has come from.
@@ -17,6 +22,7 @@ MAtplotlib will be used to plot the x-ray which is going to be used in Python sc
 
 Program Flow Chart
 ==================
+
 
 
 
