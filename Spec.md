@@ -1,9 +1,9 @@
 Functional Specification
 ========================
-Space Weather X-Ray flux with Active Region Numbers Display
-Nomajama Mhaga
-Last Update: 12 May 2014
-Version 0.1
+######Space Weather X-Ray flux with Active Region Numbers Display
+######Nomajama Mhaga
+######Last Update: 12 May 2014
+######Version 0.1
 This document explains the fuctional design of the X-ray plot from GOES with annotations of Active Region. 
 
 
@@ -22,10 +22,10 @@ Matplotlib will be used to plot the x-ray which is going to be used in Python sc
 ###Program Flow Chart
 
 
-1. See program_flow_chart_1 for the X-ray Flux
+The X-ray Flux
 ![program_flow_chart_1](program_flow_chart_1.png "Flow chart 1")
 
-2. See program_flow_chart_2 for the Active Region Annotation
+Active Region Annotation
 ![program_flow_chart_2](program_flow_chart_2.png "Flow chart 2")
 
 
