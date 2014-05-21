@@ -17,7 +17,7 @@ System Flow plan
 
 Technical Design
 ----------------
-Matplotlib will be used to plot the x-ray which is going to be used in Python script. It will run every five minutes. The data will be pulled from online sources, insert it into a database. Every time a flare occurs i.e from C to X or higher level Class, an X-ray plot with Active Region annotation will be displayed. 
+Matplotlib will be used to plot the x-ray which is going to be used in Python script. The data will be pulled from online sources, insert it into a database. Every five minutes a graph will be plotted annotating the areas with the flare i.e from C to X or higher level Class. A for loop will be implemented to determine where it falls under background class or flare class
 
 ###Program Flow Chart
 
