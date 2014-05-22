@@ -21,13 +21,6 @@ Matplotlib will be used to plot the x-ray which is going to be used in Python sc
 
 ###Program Flow Chart
 
-
-The X-ray Flux
-![program_flow_chart_1](program_flow_chart_1.png "Flow chart 1")
-
-Active Region Annotation
-![program_flow_chart_2](program_flow_chart_2.png "Flow chart 2")
-
 ![program_flow_chart](program_flow_chart.png "Flow chart")
 
 ###Conditions
