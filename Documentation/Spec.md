@@ -32,6 +32,35 @@ Matplotlib will be used to plot the x-ray which is going to be used in Python sc
    if class level is greater or equal to M: Annotate with Active region
    Otherwise do not annotate
 
+###Data Extraction and Parsing
+To fetch the data we will use the standard URL fetching library, for instance the URLLib2.
+e.g	>>>import urllib2
+	>>>response = urllib2.urlopen('http://www.lmsal.com/solarsoft/last_events/')
+	>>>html = response.read()
+
+The module BeautifulSoup will be used for parsing html once the data is already fetched. 
+e.g	>>>import urllib2
+	>>>from bs4 import beautifulsoup
+	>>>html_content = urllib2.urlopen('http://www.lmsal.com/solarsoft/last_events/')
+	>>>soup = BeautifulSoup(html_content)
+
+URLError is raised when there is a problem with network connection.
+We can be preapared for the HTTPError or URLError by an approach of this nature:
+
+from urllib2 import request, urlopen, URLError
+req = Request (someurl)
+try:
+	response = urlopen(req)
+except URLError as e:
+	if hasattr(e, 'reason'):
+		print 'Failed to reach server'
+		print 'Reason:', e.reason
+	elif hasattr (e, 'code')
+		print 'The server couldn\'t fulfill the request'
+		print 'Error code:' e.code
+else:
+	# everything is fine
+
 
 ###Database Format
 Database wil have two tables, one for the data of GOES Solar X-ray flux and one for the data of Active Regions.
@@ -43,7 +72,7 @@ Pull from:[http://www.swpc.noaa.gov/ftpdir/lists/xray/20140513_Gp_xr_5m.txt]
 | Id  |   Date time         | Short   | Long   |
 |-----|---------------------|---------|--------|
 |  1  | 2014 05 13  0020    |1.00e-09 |6.03e-07|
-|  2  | 2014 05 13  0025    |1.02e-09 |6.02e-07|  
+|  2  | 2014 05 13  0025    |1.02e-09 |6.02e-07| 
 The X-ray Flux will be converted to human readable format. 
 
 Solar Soft
@@ -53,3 +82,4 @@ Pull from: [http://www.lmsal.com/solarsoft/last_events/]
 |-------|------------|----------|-----------|------------|------------------|
 | 1     | 2014/05/07 | 04:39:00 | 04:45:00  | C1.5       | N06E71 ( 2056 )  |
 | 2     | 2014/05/07 | 06:21:00 | 06:30:00  | C3.6       | S10W89 ( 2047 )  |
+
