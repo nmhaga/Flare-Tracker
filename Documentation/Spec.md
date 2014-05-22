@@ -28,7 +28,7 @@ The X-ray Flux
 Active Region Annotation
 ![program_flow_chart_2](program_flow_chart_2.png "Flow chart 2")
 
-![program_flow_chart](program flow chart.png "Flow chart")
+![program_flow_chart](program_flow_chart.png "Flow chart")
 
 ###Conditions
 
