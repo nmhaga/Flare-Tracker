@@ -84,8 +84,8 @@ The X-ray Flux will be converted to human readable format.
 Solar Soft
 Pull from: [http://www.lmsal.com/solarsoft/last_events/]
 
-| Event | date       | Start    | Peak      | GOES class | Derived position |
-|-------|------------|----------|-----------|------------|------------------|
-| 1     | 2014/05/07 | 04:39:00 | 04:45:00  | C1.5       | N06E71 ( 2056 )  |
-| 2     | 2014/05/07 | 06:21:00 | 06:30:00  | C3.6       | S10W89 ( 2047 )  |
+| Event |   Date time  	       | Peak      | GOES class | Derived position |
+|-------|----------------------|-----------|------------|------------------|
+| 1     | 2014 05 07 04:39:00  | 04:45:00  | C1.5       | N06E71 ( 2056 )  |
+| 2     | 2014 05 07 06:21:00  | 06:30:00  | C3.6       | S10W89 ( 2047 )  |
 
