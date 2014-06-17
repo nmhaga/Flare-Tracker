@@ -1,2 +1,5 @@
 #Want to ignore gedit backups of files
 *~
+*.db
+*.ipynb
+*/.ipynb_checkpoints/
