@@ -82,10 +82,23 @@ We can be preapared for the HTTPError or URLError by an approach of this nature:
 - Rollback in case there is any error with session.rollback()
 
 ###Pulling from database
-
+- Connect to database server
+- Select database
+- SQLAlchemy query
+- Execute the query
+- Prepare loop
+- Close database connection
 
 ###Plotting
-
+- import module to access SQLAlchemy database 
+- import matplotlib pyplot module
+- connect to the database server to access the database
+- prepare a cursor 
+- make the query to be executed 
+- execute the query
+- retrive the results 
+- Close cursor and connection 
+- Plot graph
 
 ###Database Format
 We will use the Python toolkit and Object Relational Mapper (ORM) called SQLAlchemy.
