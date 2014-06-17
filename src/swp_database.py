@@ -5,11 +5,11 @@ from sqlalchemy import Column, Integer, String, DateTime, Time
 from decimal import Decimal
 from sqlalchemy import Numeric
 
-engine = create_engine('sqlite:///:swp_flares.db')
+engine = create_engine('sqlite:///swp_flares.db')
 Base = declarative_base()
 
 class Xrayflux(Base):
-    __tablename__ = 'Xrayflux'
+    __tablename__ = 'xrayflux'
     
     id = Column(Integer, primary_key=True, nullable=False)
     ut_datetime = Column(DateTime, nullable = False)
@@ -21,7 +21,7 @@ class Xrayflux(Base):
 
 
 class Solarsoft(Base):
-    __tablename__ = 'Solarsoft'
+    __tablename__ = 'solarsoft'
     
     event =Column(Integer, primary_key=True, nullable=False)
     ut_datetime = Column(DateTime, nullable = False)
@@ -29,8 +29,8 @@ class Solarsoft(Base):
     goes_class = Column(Numeric(14,12))
     derived_time = Column(String(20))
     
-	def __repr__(self):
-    		return "<Solarsoft({},{},{},{})>".format(self.ut_datetime, self.peak, self.goes_class, self.derived_time)
+    def __repr__(self):
+        return "<Solarsoft({},{},{},{})>".format(self.ut_datetime, self.peak, self.goes_class, self.derived_time)
 
 
 Base.metadata.create_all(engine)   
