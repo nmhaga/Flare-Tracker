@@ -69,17 +69,17 @@ We can be preapared for the HTTPError or URLError by an approach of this nature:
 ```
 
 ###Inserting into database
-import sqlalchemy
-Open database connection with create_engine method
-Prepare a session object using the session() object
-connect engine to the session using configure() method
-group data using tuples: data = [("utdate_time", "short", "longx")]
-	data format:
-		utdate_time = DATETIME, short = NUMERIC, longx = NUMERIC
-create for loop for data
-To persist xrayflux objects to database use session.add()
-Issue all remaining changes to the database and commit with session.commit()
-Rollback in case there is any error with session.rollback()
+- import sqlalchemy
+- Open database connection with create_engine method
+- Prepare a session object using the session() object
+- connect engine to the session using configure() method
+- group data using tuples: data = [("utdate_time", "shortx", "longx")]
+	- data format:
+		- utdate_time = DATETIME, short = NUMERIC, longx = NUMERIC
+- create for loop for data
+- To persist xrayflux objects to database use session.add()
+- Issue all remaining changes to the database and commit with session.commit()
+- Rollback in case there is any error with session.rollback()
 
 ###Pulling from database
 
@@ -95,7 +95,7 @@ Database will have two tables, one for the data of GOES Solar X-ray flux and one
 X-ray Flux
 Pull from [NOAA](http://www.swpc.noaa.gov/ftpdir/lists/xray/20140513_Gp_xr_5m.txt)
 
-| Id |   Date time         | Short   | Longx  |
+| Id |   Date time         | Shortx   | Longx  |
 |----|---------------------|---------|--------|
 | 1  | 2014 05 13  0020    |1.00e-09 |6.03e-07|
 | 2  | 2014 05 13  0025    |1.02e-09 |6.02e-07| 
