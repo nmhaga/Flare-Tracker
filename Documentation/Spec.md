@@ -12,41 +12,62 @@ Overview
 ---------
 For the new display, the program will pull data from online resources. When a flare occurs, an X-ray plot from the GOES with Active Region numbers to see which Active region the flare has come from.
 
-System Flow plan
-----------------
-
 Technical Design
 ----------------
 Matplotlib will be used to plot the x-ray which is going to be used in Python script. The data will be pulled from online sources, insert it into a database. Every five minutes a graph will be plotted annotating the areas with the flare i.e from C to X or higher level Class. A for loop will be implemented to determine where it falls under background class or flare class
 
 ###Program Flow Chart
 
-![program_flow_chart](program_flow_chart.png "Flow chart")
+|                 **Program Flow Table**                                       |
+|------------------------------------------------------------------------------|
+|  1. Setup Database connection (create db if doesn't exist)                   |
+|  2. Fetch Data From GOES                                                     |
+|  3. Parse Data From GOES                                                     |
+|  4. Insert GOES Data into Database                                           |
+|  5. Fetch Data From SolarSoft                                                |
+|  6. Parse Data From SolarSoft                                                |
+|  7. Insert SolarSoft Data into Database                                      |
+|  8. Fetch 24 hours of GOES & Solarsoft data from database, check thresholds  |
+| 10. Plot the graph                                                           |
+| 11. Annotate the graph                                                       |
+| 12. Save the graph to an image file.                                         |
+
 
 ###Conditions
 
-1. X-ray solar flare 
-   Background: between A and C level
-   flare: between C and X
-2. Solar soft (Annotations)
+1. Solar soft (Annotations)
    if class level is greater or equal to M: Annotate with Active region
    Otherwise do not annotate
 
 ###Data Extraction and Parsing
-To fetch the data we will use the standard URL fetching library, for instance the URLLib2.
-e.g	
+
+#####X-ray Flux
+To fetch the data we will use the standard URL fetching library, URLLib2.
+```python
+	import urllib2
+	response = urllib2.urlopen('http://www.swpc.noaa.gov/ftpdir/lists/xray/')
+	html = response.read()
+```
+
+######Parsing
+Since the lines in the X-ray Flux file are separated by white space and in plain text we will loop over the file and use .split().
+
+#####Solar Soft
+To fetch the data we will use the standard URL fetching library, URLLib2.
+	
 ```python
 	import urllib2
 	response = urllib2.urlopen('http://www.lmsal.com/solarsoft/last_events/')
 	html = response.read()
 ```
+######Parsing
 The module BeautifulSoup will be used for parsing html once the data is already fetched. 
 e.g
 ```python
-	import urllib2
 	from bs4 import beautifulsoup
 	html_content = urllib2.urlopen('http://www.lmsal.com/solarsoft/last_events/')
 	soup = BeautifulSoup(html_content)
+	
 ```
 URLError is raised when there is a problem with network connection.
 We can be preapared for the HTTPError or URLError by an approach of this nature:
