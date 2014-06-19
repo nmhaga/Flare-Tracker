@@ -41,7 +41,28 @@ Matplotlib will be used to plot the x-ray which is going to be used in Python sc
 
 ###Data Extraction and Parsing
 
-#####X-ray Flux
+####X-ray Flux
+
+URLError is raised when there is a problem with network connection.
+We can be preapared for the HTTPError or URLError by an approach of this nature:
+
+
+```python
+	from urllib2 import request, urlopen, URLError
+	req = Request (http://www.swpc.noaa.gov/ftpdir/lists/xray/)
+	try:
+		response = urlopen(req)
+	except URLError as e:
+		if hasattr(e, 'reason'):
+			print 'Failed to reach server'
+			print 'Reason:', e.reason
+		elif hasattr(e, 'code')
+			print 'The server couldn\'t fulfill the request'
+			print 'Error code:' e.code
+	else:
+		# everything is fine
+```
+
 To fetch the data we will use the standard URL fetching library, URLLib2.
 ```python
 	import urllib2
@@ -49,26 +70,10 @@ To fetch the data we will use the standard URL fetching library, URLLib2.
 	html = response.read()
 ```
 
-######Parsing
 Since the lines in the X-ray Flux file are separated by white space and in plain text we will loop over the file and use .split().
 
-#####Solar Soft
-To fetch the data we will use the standard URL fetching library, URLLib2.
-	
-```python
-	import urllib2
-	response = urllib2.urlopen('http://www.lmsal.com/solarsoft/last_events/')
-	html = response.read()
-```
-######Parsing
-The module BeautifulSoup will be used for parsing html once the data is already fetched. 
-e.g
-```python
-	from bs4 import beautifulsoup
-	html_content = urllib2.urlopen('http://www.lmsal.com/solarsoft/last_events/')
-	soup = BeautifulSoup(html_content)
-	
-```
+####Solar Soft
+
 URLError is raised when there is a problem with network connection.
 We can be preapared for the HTTPError or URLError by an approach of this nature:
 
@@ -89,6 +94,29 @@ We can be preapared for the HTTPError or URLError by an approach of this nature:
 		# everything is fine
 ```
 
+To fetch the data we will use the standard URL fetching library, URLLib2.
+	
+```python
+	import urllib2
+	response = urllib2.urlopen('http://www.lmsal.com/solarsoft/last_events/')
+	html = response.read()
+```
+
+The module BeautifulSoup will be used for parsing html once the data is already fetched. 
+e.g
+```python
+	from bs4 import beautifulsoup
+	html_content = urllib2.urlopen('http://www.lmsal.com/solarsoft/last_events/')
+	soup = BeautifulSoup(html_content)
+	table = soup.findAll ("table")
+	row = table.findAll('tr')
+	for tr in rows:
+		cols = tr.findAll('td')
+		for td in cols:
+			text = ''.join(td.find(text=True)
+```
+
+
 ###Inserting into database
 - import sqlalchemy
 - Open database connection with create_engine method
@@ -103,22 +131,16 @@ We can be preapared for the HTTPError or URLError by an approach of this nature:
 - Rollback in case there is any error with session.rollback()
 
 ###Pulling from database
-- Connect to database server
-- Select database
-- SQLAlchemy query
-- Execute the query
-- Prepare loop
-- Close database connection
-
-###Plotting
 - import module to access SQLAlchemy database 
-- import matplotlib pyplot module
 - connect to the database server to access the database
 - prepare a cursor 
 - make the query to be executed 
 - execute the query
 - retrive the results 
 - Close cursor and connection 
+
+###Plotting
+- import matplotlib pyplot module
 - Plot graph
 
 ###Database Format
