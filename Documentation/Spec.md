@@ -36,7 +36,7 @@ Matplotlib will be used to plot the x-ray which is going to be used in Python sc
 ###Conditions
 
 1. Solar soft (Annotations)
-   if class level is greater or equal to M: Annotate with Active region
+   if class level is greater or equal to C: Annotate with Active region
    Otherwise do not annotate
 
 ###Data Extraction and Parsing
