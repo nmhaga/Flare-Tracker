@@ -1,5 +1,7 @@
 #This is where the source code is written.
 
+#Extracting and parsing of SolarSoft data
+
 import urllib2
 from BeautifulSoup import BeautifulSoup
 
@@ -38,4 +40,36 @@ def read_solarsoft_data(html_content):
         
 resset = get_solarsoft_data()
 print resset
+
+#Extrating X-ray flux data 
+
+import urllib2
+import datetime
+
+def get_xrayFlux_file(date=None):
+
+    filename = generate_filename(date)
+    url = urllib2.urlopen('http://www.swpc.noaa.gov/ftpdir/lists/xray/'+filename)
+    content = url.read()
+
+    return content
+
+def generate_filename(date, cadence=1):
+    if date is None:
+        date = datetime.datetime.utcnow()
+    filename = "{date}_Gp_xr_{cadence}m.txt".format(date=date.strftime("%Y%m%d"), cadence=cadence)
+    return filename
+    
+utdatetime =[]
+longflux = []
+shortflux = []
+for line in get_xrayFlux_file().splitlines():
+    #if line[0] !='#' and line[0] !=':':
+    if line[0] not in ['#',':']:
+        #print line.split()
+        yyyy, mm, dd, hhmm, jd, ss, shortx, longx = line.split()   
+        date=datetime.datetime.strptime(yyyy+mm+dd+hhmm, "%Y%m%d%H%M")
+        utdatetime.append(date)
+        longflux.append(float(longx))
+        shortflux.append(float(shortx))
 
