@@ -27,10 +27,11 @@ class Solarsoft(Base):
     ut_datetime = Column(DateTime, nullable = False)
     peak = Column(Time, nullable=False)
     goes_class = Column(Numeric(14,12))
-    derived_time = Column(String(20))
+    derived_position = Column(String(20))
+    Region = Column(String(10))
     
     def __repr__(self):
-        return "<Solarsoft({},{},{},{})>".format(self.ut_datetime, self.peak, self.goes_class, self.derived_time)
+        return "<Solarsoft({},{},{},{})>".format(self.ut_datetime, self.peak, self.goes_class, self.derived_position, self.Region)
 
 
 Base.metadata.create_all(engine)   
