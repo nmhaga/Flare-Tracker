@@ -5,6 +5,19 @@
 import urllib2
 from BeautifulSoup import BeautifulSoup
 
+from urllib2 import Request, urlopen, URLError, HTTPError
+req1 = urllib2.Request('http://www.lmsal.com/solarsoft/last_events')
+try:
+    response = urlopen(req1)
+except HTTPError as e:
+    print 'The server couldn\'t fulfill the request.'
+    print 'Error code: ', e.code
+except URLError as e:
+    print 'We failed to reach a server.'
+    print 'Reason: ', e.reason
+else:
+    'everything is fine'
+
 def get_solarsoft_data():
     response = urllib2.urlopen('http://www.lmsal.com/solarsoft/last_events/')
     html_content = response.read()
@@ -43,8 +56,21 @@ print resset
 
 #Extrating X-ray flux data 
 
-import urllib2
 import datetime
+
+from urllib2 import Request, urlopen, URLError, HTTPError
+
+req2 = urllib2.Request('http://www.swpc.noaa.gov/ftpdir/lists/xray/')
+try:
+    response = urlopen(req2)
+except HTTPError as e:
+    print 'The server couldn\'t fulfill the request.'
+    print 'Error code: ', e.code
+except URLError as e:
+    print 'We failed to reach a server.'
+    print 'Reason: ', e.reason
+else:
+    'everything is fine'
 
 def get_xrayFlux_file(date=None):
 
