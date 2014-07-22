@@ -1,11 +1,9 @@
-from sqlalchemy import create_engine
 from sqlalchemy.ext.declarative import declarative_base
-from sqlalchemy.orm import Session
 from sqlalchemy import Column, Integer, String, DateTime, Time
 from decimal import Decimal
 from sqlalchemy import Numeric
 
-engine = create_engine('sqlite:///swp_flares.db')
+
 Base = declarative_base()
 
 class Xrayflux(Base):
@@ -33,9 +31,6 @@ class Solarsoft(Base):
     def __repr__(self):
         return "<Solarsoft({},{},{},{})>".format(self.ut_datetime, self.peak, self.goes_class, self.derived_position, self.Region)
 
-
-Base.metadata.create_all(engine)   
-session = Session(bind=engine)
 
 
 
