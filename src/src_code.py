@@ -5,6 +5,7 @@ from BeautifulSoup import BeautifulSoup
 from urllib2 import Request, urlopen, URLError, HTTPError
 from sqlalchemy import create_engine
 from sqlalchemy.orm import Session
+from datetime import timedelta
 
 import swp_database
 
@@ -51,10 +52,15 @@ def read_solarsoft_data(html_content):
         col = row.findAll('td')
         if len(col) < 7:
             continue
-        Event = col[0].string
         Datetime = col[2].string
-        Peak = col[4].string
+        Peaktime = col[4].string
+        #we need to extract date information from the start date to get the peak datetime:
+        Peak = get_peakdate_from_startdate(Datetime, Peaktime)
+        Start = datetime.datetime.strptime(Datetime, "%Y/%m/%d %H:%M:%S") 
+        
         GOES_class = col[5].string
+        GOES_flare = convert_flare_format_into_decimal(GOES_class)
+        
         if col[6].find('a') is not None:
             Derived_position = col[6].find('a').string
             Region = col[6].find('font').contents[1]
@@ -64,10 +70,32 @@ def read_solarsoft_data(html_content):
 
         newR = Region.replace("(", "").replace(")", "").strip() #get the number from inside the brackets!
 
-        result = (Event, Datetime, Peak, GOES_class, Derived_position, newR)
+        result = (Start, Peak, GOES_flare, Derived_position, newR)
         resultset.append(result)  
     return resultset
     
+def convert_flare_format_into_decimal(GOES_class):
+    conversion_lookup_table = {'X':-4, 'M':-5, 'C':-6, 'B':-7, 'A':-8}
+    class_letter = GOES_class[0]
+    class_exponent = conversion_lookup_table[class_letter]
+    digits = float(GOES_class[1:])  #TODO CHECK IF THERE SHOULD BE DECIMAL/NUMERIC
+    thenumber = digits * (10 ** class_exponent)
+    return thenumber
+
+
+def get_peakdate_from_startdate(start, peak):
+    #convert start date into datetime
+    start_datetime = datetime.datetime.strptime(start, "%Y/%m/%d %H:%M:%S") 
+    #get date part out
+    peak_time = datetime.datetime.strptime(peak, "%H:%M:%S").time()
+    
+    #we assume that an event is shorter than 24 hours
+    if (start_datetime.time() <= peak_time): #same day
+        peak_datetime = datetime.datetime.combine(start_datetime.date(), peak_time)
+    else: #peak time is the following day  
+        peak_datetime = datetime.datetime.combine(start_datetime.date() + datetime.timedelta(days=1), peak_time)
+
+    return peak_datetime     
     
 def insert_solarsoft_data(ss_result_set, session):
 
@@ -79,13 +107,13 @@ def insert_solarsoft_data(ss_result_set, session):
         solarsoft_object_list.append(solarsoft_entry)
         
     session.add_all(solarsoft_object_list) 
-    session.commit()  
+    session.commit() 
     
 def query_ss(session): 
     res = session.query(swp_database.Solarsoft).all()
     #print res
     for row in res:
-        print row.ut_datetime, row.peak, row.goes_class, row.derived_position, row.Region
+        print row.event, row.ut_datetime, row.peak, row.goes_class, row.derived_position, row.Region
 
      
 #Extrating X-ray flux data 
