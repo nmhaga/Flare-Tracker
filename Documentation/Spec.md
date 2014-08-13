@@ -10,11 +10,11 @@ This document explains the fuctional design of the X-ray plot from GOES with ann
 
 Overview
 ---------
-For the new display, the program will pull data from online resources. When a flare occurs, an X-ray plot from the GOES with Active Region numbers to see which Active region the flare has come from.
+The Flare-Tracker program will pull data from online resources. Organise and store data into a database. Pull data from the database and plot X-ray flux with annotations of Active Region numbers. The plot will be displayed on one of the screens in the Space Weather Centre.
 
 Technical Design
 ----------------
-Matplotlib will be used to plot the x-ray which is going to be used in Python script. The data will be pulled from online sources, insert it into a database. Every five minutes a graph will be plotted annotating the areas with the flare i.e from C to X or higher level Class. A for loop will be implemented to determine where it falls under background class or flare class
+Matplotlib will be used to plot the x-ray which is going to be used in Python script. The data will be pulled from online sources, insert it into a database. Every five minutes a graph will be plotted annotating the areas with the flare i.e from C to X or higher level Class. A for loop will be implemented to determine whether it falls under background class or flare class. In a case where there is no active region, we assume it is an unnamed region and just the derived position is available.
 
 ###Program Flow Chart
 
@@ -44,7 +44,7 @@ Matplotlib will be used to plot the x-ray which is going to be used in Python sc
 ####X-ray Flux
 
 URLError is raised when there is a problem with network connection.
-We can be preapared for the HTTPError or URLError by an approach of this nature:
+We can be prepared for the HTTPError or URLError by an approach of this nature:
 
 
 ```python
@@ -151,7 +151,7 @@ Database will have two tables, one for the data of GOES Solar X-ray flux and one
 X-ray Flux
 Pull from [NOAA](http://www.swpc.noaa.gov/ftpdir/lists/xray/20140513_Gp_xr_5m.txt)
 
-| Id |   Date time         | Shortx   | Longx  |
+| Id |   Date time         | Shortx  | Longx  |
 |----|---------------------|---------|--------|
 | 1  | 2014 05 13  0020    |1.00e-09 |6.03e-07|
 | 2  | 2014 05 13  0025    |1.02e-09 |6.02e-07| 
@@ -160,8 +160,10 @@ The X-ray Flux will be converted to human readable format.
 Solar Soft
 Pull from: [http://www.lmsal.com/solarsoft/last_events/]
 
-| Event |   Date time  	       | Peak      | GOES class | Derived position |
-|-------|----------------------|-----------|------------|------------------|
-| 1     | 2014 05 07 04:39:00  | 04:45:00  | C1.5       | N06E71 ( 2056 )  |
-| 2     | 2014 05 07 06:21:00  | 06:30:00  | C3.6       | S10W89 ( 2047 )  |
+| Id    |   Date time  	       | Peak      | GOES class | Derived position |Region |
+|-------|----------------------|-----------|------------|------------------|-------|
+| 1     | 2014 05 07 04:39:00  | 04:45:00  | C1.5       | N06E71           |2056   |
+| 2     | 2014 05 07 06:21:00  | 06:30:00  | C3.6       | S10W89           |2047   |
+
+The goes class column comes in a string format, it will be converted to a decimak format.
 
