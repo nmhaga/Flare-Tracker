@@ -10,11 +10,11 @@ This document explains the fuctional design of the X-ray plot from GOES with ann
 
 Overview
 ---------
-The Flare-Tracker program will pull data from online resources. Organise and store data into a database. Pull data from the database and plot X-ray flux with annotations of Active Region numbers. The plot will be displayed on one of the screens in the Space Weather Centre.
+The Flare-Tracker program will pull data from online resources every 5 minutes. It will organise and store data into a database, and then pull that data from the database and plot X-ray flux with annotations of Active Region numbers. The plot will be displayed on one of the screens in the Space Weather Centre.
 
 Technical Design
 ----------------
-Matplotlib will be used to plot the x-ray which is going to be used in Python script. The data will be pulled from online sources, insert it into a database. Every five minutes a graph will be plotted annotating the areas with the flare i.e from C to X or higher level Class. A for loop will be implemented to determine whether it falls under background class or flare class. In a case where there is no active region, we assume it is an unnamed region and just the derived position is available.
+Matplotlib will be used to plot the x-ray which is going to be used in Python script. The data will be pulled from online sources, and inserted into a database. Every five minutes a graph will be plotted annotating the areas with the flare i.e from C to X or higher level Class. A for-loop will be implemented to determine whether it falls under background class or flare class. In a case where there is no active region, we assume it is an unnamed region and annotate with the derived position.
 
 ###Program Flow Chart
 
@@ -40,92 +40,53 @@ Matplotlib will be used to plot the x-ray which is going to be used in Python sc
    Otherwise do not annotate
 
 ###Data Extraction and Parsing
+//For both of them, we use the standard URL fetching library, URLLib. Then we make a request for the URL and get the HTML content. (split this out, only put detail into the subsections where required.)
 
-####X-ray Flux
-
-URLError is raised when there is a problem with network connection.
+URLError will be raised when there is a problem with the network connection.
 We can be prepared for the HTTPError or URLError by an approach of this nature:
-
 
 ```python
 	from urllib2 import request, urlopen, URLError
-	req = Request (http://www.swpc.noaa.gov/ftpdir/lists/xray/)
+	req = Request (url)
 	try:
 		response = urlopen(req)
-	except URLError as e:
-		if hasattr(e, 'reason'):
-			print 'Failed to reach server'
-			print 'Reason:', e.reason
-		elif hasattr(e, 'code')
-			print 'The server couldn\'t fulfill the request'
-			print 'Error code:' e.code
-	else:
-		# everything is fine
+	    print 'everything is fine'
+    except HTTPError as e:
+        print "The server couldn't fulfill the request."
+        print 'Error code: ', e.code
+    except URLError as e:
+        print 'We failed to reach a server.'
+        print 'Reason: ', e.reason
+    
 ```
 
-To fetch the data we will use the standard URL fetching library, URLLib2.
-```python
-	import urllib2
-	response = urllib2.urlopen('http://www.swpc.noaa.gov/ftpdir/lists/xray/')
-	html = response.read()
-```
+####X-ray Flux
+//specific to this is generating the filename. This file is only updated every hour or so, we may wish to pull from Gp_xr_1m.txt. 
 
 Since the lines in the X-ray Flux file are separated by white space and in plain text we will loop over the file and use .split().
 
 ####Solar Soft
 
-URLError is raised when there is a problem with network connection.
-We can be preapared for the HTTPError or URLError by an approach of this nature:
-
-
-```python
-	from urllib2 import request, urlopen, URLError
-	req = Request (someurl)
-	try:
-		response = urlopen(req)
-	except URLError as e:
-		if hasattr(e, 'reason'):
-			print 'Failed to reach server'
-			print 'Reason:', e.reason
-		elif hasattr(e, 'code')
-			print 'The server couldn\'t fulfill the request'
-			print 'Error code:' e.code
-	else:
-		# everything is fine
-```
-
-To fetch the data we will use the standard URL fetching library, URLLib2.
-	
-```python
-	import urllib2
-	response = urllib2.urlopen('http://www.lmsal.com/solarsoft/last_events/')
-	html = response.read()
-```
-
+//specific to this is converting Xray class into number. 
 The module BeautifulSoup will be used for parsing html once the data is already fetched. 
 e.g
 ```python
 	from bs4 import beautifulsoup
-	html_content = urllib2.urlopen('http://www.lmsal.com/solarsoft/last_events/')
 	soup = BeautifulSoup(html_content)
 	table = soup.findAll ("table")
 	row = table.findAll('tr')
 	for tr in rows:
 		cols = tr.findAll('td')
-		for td in cols:
-			text = ''.join(td.find(text=True)
 ```
-
+Inorder to get the peak datetime, we will extract the date information from the startdate.
 
 ###Inserting into database
+For both of them the data will come as a list of tuples.
 - import sqlalchemy
 - Open database connection with create_engine method
 - Prepare a session object using the session() object
-- connect engine to the session using configure() method
-- group data using tuples: data = [("utdate_time", "shortx", "longx")]
-	- data format:
-		- utdate_time = DATETIME, short = NUMERIC, longx = NUMERIC
-- create for loop for data
+- create an empty list
+- create a 'for loop' for the rows
 - To persist xrayflux objects to database use session.add()
 - Issue all remaining changes to the database and commit with session.commit()
 - Rollback in case there is any error with session.rollback()
@@ -136,7 +97,7 @@ e.g
 - prepare a cursor 
 - make the query to be executed 
 - execute the query
-- retrive the results 
+- retrieve the results 
 - Close cursor and connection 
 
 ###Plotting
