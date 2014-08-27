@@ -81,6 +81,7 @@ def convert_flare_format_into_decimal(GOES_class):
     digits = float(GOES_class[1:])  #TODO CHECK IF THERE SHOULD BE DECIMAL/NUMERIC
     thenumber = digits * (10 ** class_exponent)
     return thenumber
+    
 
 
 def get_peakdate_from_startdate(start, peak):
@@ -102,18 +103,20 @@ def insert_solarsoft_data(ss_result_set, session):
     #ss_result_set comes as a list of tuples, in the form (ut_datetime, peak, goes_class, derived_position, region)
     solarsoft_object_list = []
     for row in ss_result_set:
-        solarsoft_entry = swp_database.Solarsoft(ut_datetime = row[0], peak = row[1], goes_class = row[2], derived_position = row[3], Region = row[4])
+        solarsoft_entry = swp_database.Solarsoft(ut_datetime = row[0], peak = row[1], goes_class = row[2], derived_position = row[3], region = row[4])
         
         solarsoft_object_list.append(solarsoft_entry)
-        
+      
     session.add_all(solarsoft_object_list) 
     session.commit() 
     
 def query_ss(session): 
-    res = session.query(swp_database.Solarsoft).all()
+    current_time = datetime.datetime.utcnow()
+    twenty_four_hours_ago = current_time - datetime.timedelta(hours=24)
+    res = session.query(swp_database.Solarsoft).filter(swp_database.Solarsoft.ut_datetime > twenty_four_hours_ago).all()
     #print res
-    for row in res:
-        print row.event, row.ut_datetime, row.peak, row.goes_class, row.derived_position, row.Region
+    #for row in res:
+        #print row.event, row.ut_datetime, row.peak, row.goes_class, row.derived_position, row.region
 
      
 #Extrating X-ray flux data 
@@ -162,15 +165,19 @@ def insert_xrayflux_data(xr_result_set, session):
         xray_entry = swp_database.Xrayflux(ut_datetime = row[0], short = row[2], longx = row[1])
         #print xray_entry
         xrayflux_object_list.append(xray_entry)
-        
-    session.add_all(xrayflux_object_list ) 
-    session.commit()
+    try:    
+        session.add_all(xrayflux_object_list ) 
+        session.commit()
+    except IntegrityError:
+        session.rollback()     
 
-def query_xr(session):
-    res = session.query(swp_database.Xrayflux).all()
+def query_xr(session, ):
+    current_time = datetime.datetime.utcnow()
+    twenty_four_hours_ago = current_time - datetime.timedelta(hours=24)
+    res = session.query(swp_database.Xrayflux).filter(swp_database.Xrayflux.ut_datetime > twenty_four_hours_ago).all()
     #print res
-    for row in res:
-        print row.ut_datetime, row.short, row.longx
+    #for row in res:
+        #print row.ut_datetime, row.short, row.longx
 
 
 def main():
