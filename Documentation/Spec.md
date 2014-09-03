@@ -40,7 +40,7 @@ Matplotlib will be used to plot the x-ray which is going to be used in Python sc
    Otherwise do not annotate
 
 ###Data Extraction and Parsing
-//For both of them, we use the standard URL fetching library, URLLib. Then we make a request for the URL and get the HTML content. (split this out, only put detail into the subsections where required.)
+//For both of GOES and SolarSoft, we use the standard URL fetching library, URLLib. Then we make a request for the URL and get the HTML content. (split this out, only put detail into the subsections where required.)
 
 URLError will be raised when there is a problem with the network connection.
 We can be prepared for the HTTPError or URLError by an approach of this nature:
@@ -61,13 +61,13 @@ We can be prepared for the HTTPError or URLError by an approach of this nature:
 ```
 
 ####X-ray Flux
-//specific to this is generating the filename. This file is only updated every hour or so, we may wish to pull from Gp_xr_1m.txt. 
+//Specific to this is generating the filename. This file is only updated every hour or so, we may wish to pull from Gp_xr_1m.txt. 
 
 Since the lines in the X-ray Flux file are separated by white space and in plain text we will loop over the file and use .split().
 
 ####Solar Soft
 
-//specific to this is converting Xray class into number. 
+//Since the GOES class comes in a string format, we will convert it to a decimal type. 
 The module BeautifulSoup will be used for parsing html once the data is already fetched. 
 e.g
 ```python
@@ -78,7 +78,13 @@ e.g
 	for tr in rows:
 		cols = tr.findAll('td')
 ```
-Inorder to get the peak datetime, we will extract the date information from the startdate.
+In the Solarsoft table the peak time has no date so inorder to get the peak datetime, we will extract the date information from the startdate. We need this date to know exactly which date the flare reaches a peak.
+
+Possible scenarios:
+start datetime           Peak         Peak datetime
+2014/01/01 23:59         00:00        2014/01/02 00:00
+2014/01/01 00:00         00:00        2014/01/01 00:00
+2014/01/02 00:00         00:05        2014/01/02 00:05
 
 ###Inserting into database
 For both of them the data will come as a list of tuples.
