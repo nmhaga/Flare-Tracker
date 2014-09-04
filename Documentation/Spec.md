@@ -2,11 +2,9 @@ Functional Specification
 ========================
 ######Space Weather X-Ray flux with Active Region Numbers Display
 ######Nomajama Mhaga
-######Last Update: 12 May 2014
+######Last Update: 05 September 2014
 ######Version 0.1
 This document explains the fuctional design of the X-ray plot from GOES with annotations of Active Region. 
-
-
 
 Overview
 ---------
@@ -14,7 +12,7 @@ The Flare-Tracker program will pull data from online resources every 5 minutes. 
 
 Technical Design
 ----------------
-Matplotlib will be used to plot the x-ray which is going to be used in Python script. The data will be pulled from online sources, and inserted into a database. Every five minutes a graph will be plotted annotating the areas with the flare i.e from C to X or higher level Class. A for-loop will be implemented to determine whether it falls under background class or flare class. In a case where there is no active region, we assume it is an unnamed region and annotate with the derived position.
+The program will be written in Python, using sqlite3 (connecting to python with SQLALchemy) and matplotlib. The data will be pulled from online sources, and inserted into a database. Every five minutes a graph will be plotted using matplotlib annotating the areas with the flare i.e from C to X or higher level Class. In a case where there is no active region number, we assume it is an unnamed region and annotate with the derived position.
 
 ###Program Flow Chart
 
@@ -67,7 +65,8 @@ Since the lines in the X-ray Flux file are separated by white space and in plain
 
 ####Solar Soft
 
-//Since the GOES class comes in a string format, we will convert it to a decimal type. 
+//Since the GOES class comes in a string format, we will convert it to a decimal type. The first element of the string represent the classification of a solar flare according to the peak flux, ie. A, B, C, M or X. Each X-ray class category is divided into a logarithmic scale from 1 to 9. The second element is the class exponent which ranges from {-8 to -4}.
+
 The module BeautifulSoup will be used for parsing html once the data is already fetched. 
 e.g
 ```python
@@ -93,27 +92,54 @@ For both of them the data will come as a list of tuples.
 - Prepare a session object using the session() object
 - create an empty list
 - create a 'for loop' for the rows
-- To persist xrayflux objects to database use session.add()
+- To persist the objects to database use session.add()
 - Issue all remaining changes to the database and commit with session.commit()
-- Rollback in case there is any error with session.rollback()
+- You can Rollback in case there is any error with session.rollback(), but we won't implement this yet. 
 
 ###Pulling from database
 - import module to access SQLAlchemy database 
 - connect to the database server to access the database
 - prepare a cursor 
-- make the query to be executed 
+- make the query to be executed (see below)
 - execute the query
-- retrieve the results 
+- retrieve the results and store in variables
 - Close cursor and connection 
+
+#### Pull x-ray data: 
+//Explain here how you would specify date-range. Where datetime > (end of today - 3 days) 
+We want to specify the date between now and 3 days ago. we can do this in python using the datetime and timedelta functions.
+We want it to snap to the nearest date. to do this: 
+we set up the datetime where hour, minute and second is equal to zero.
+By the end of the day we want the plot to be full 
+
+##come back to this! Think about how to make the graph look niiice. 
+````python
+dtnow = datetime.datetime.utcnow()
+dt3days = dtnow - datetime.timedelta(days=3)
+3day_ago_data = session.query(data).filter(data.datetime > dt3days).all()
+#(fetch data where datetime <=  
+````
+
+#### Pull solarsoft data
+As well as the dtnow that we do above, we also need to specify the threshold for region annotation. The threshold will be M-class (which corresponds to greater than 10*-5). This would be specified as "WHERE GOES_CLASS *U* >= 1.0e-*U*" 
+
 
 ###Plotting
 - import matplotlib pyplot module
+- Configure/create the axes
+- Put the data into the format required by matplotlib (probably using a list comprehension) 
 - Plot graph
+
+The background colour will be white. 
+The short plot will be Blue
+The long plot will be Red
+Annotations will be in black. 
+The y-scale needs to be logorithmic
+We will want to mark the class scale on the other axis
 
 ###Database Format
 We will use the Python toolkit and Object Relational Mapper (ORM) called SQLAlchemy.
 Database will have two tables, one for the data of GOES Solar X-ray flux and one for the data of Active Regions.
-
 
 X-ray Flux
 Pull from [NOAA](http://www.swpc.noaa.gov/ftpdir/lists/xray/20140513_Gp_xr_5m.txt)
@@ -127,10 +153,10 @@ The X-ray Flux will be converted to human readable format.
 Solar Soft
 Pull from: [http://www.lmsal.com/solarsoft/last_events/]
 
-| Id    |   Date time  	       | Peak      | GOES class | Derived position |Region |
-|-------|----------------------|-----------|------------|------------------|-------|
-| 1     | 2014 05 07 04:39:00  | 04:45:00  | C1.5       | N06E71           |2056   |
-| 2     | 2014 05 07 06:21:00  | 06:30:00  | C3.6       | S10W89           |2047   |
+| Id    |   Date time  	       | Peak      | GOES class   | Derived position |Region |
+|-------|----------------------|-----------|--------------|------------------|-------|
+| 1     | 2014 05 07 04:39:00  | 04:45:00  |0.000001500000| N06E71           |2056   |
+| 2     | 2014 05 07 06:21:00  | 06:30:00  |0.000004400000| S10W89           |2047   |
 
-The goes class column comes in a string format, it will be converted to a decimak format.
+The goes class column comes in a string format, it will be converted to a decimal format.
 
