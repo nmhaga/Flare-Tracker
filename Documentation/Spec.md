@@ -34,7 +34,7 @@ The program will be written in Python, using sqlite3 (connecting to python with 
 ###Conditions
 
 1. Solar soft (Annotations)
-   if class level is greater or equal to C: Annotate with Active region
+   if class level is greater or equal to M: Annotate with Active region
    Otherwise do not annotate
 
 ###Data Extraction and Parsing
@@ -121,7 +121,7 @@ dt3days = dtnow - datetime.timedelta(days=3)
 ````
 
 #### Pull solarsoft data
-As well as the dtnow that we do above, we also need to specify the threshold for region annotation. The threshold will be M-class (which corresponds to greater than 10*-5). This would be specified as "WHERE GOES_CLASS *U* >= 1.0e-*U*" 
+As well as the dtnow that we do above, we also need to specify the threshold for region annotation. The threshold will be M-class (which corresponds to greater than 10*-5). This would be specified as "WHERE GOES_CLASS M >= 1.0e-*-5" 
 
 
 ###Plotting
@@ -133,8 +133,8 @@ As well as the dtnow that we do above, we also need to specify the threshold for
 The background colour will be white. 
 The short plot will be Blue
 The long plot will be Red
-Annotations will be in black. 
-The y-scale needs to be logorithmic
+Annotations will be in blackack and we want to annotate the long only. 
+The y-scale needs to be logorithmic.
 We will want to mark the class scale on the other axis
 
 ###Database Format
