@@ -1,6 +1,7 @@
-from urllib2 import Request, urlopen, URLError, HTTPError
 import datetime
 
+import sys
+sys.path.append('/home/nmhaga/Documents/SWP/src/')
 import src_code
 
 
