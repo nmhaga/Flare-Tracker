@@ -1,7 +1,8 @@
 import datetime
 
 import sys
-sys.path.append('/home/nmhaga/Documents/SWP/src/')
+sys.path.append('../') # but pytest have to be called from test directory
+# That also affect to the 'sample_url.html' file below.
 import src_code
 
 
@@ -26,4 +27,6 @@ def test_read_solarsoft_data():
     assert result[0][4] == '2149'
     assert result[4][4] == '2152'
     
+def test_get_peakdate_from_startdate():
+    assert     
     
