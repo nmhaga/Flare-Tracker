@@ -28,5 +28,8 @@ def test_read_solarsoft_data():
     assert result[4][4] == '2152'
     
 def test_get_peakdate_from_startdate():
-    assert     
-    
+    assert  src_code.get_peakdate_from_startdate(start = "2014/01/01 00:00:00", peak = "00:06:00") == datetime.datetime(2014, 1, 1, 0,6,0)
+    assert  src_code.get_peakdate_from_startdate(start = "2013/12/31 23:58:50", peak = "00:06:00") == datetime.datetime(2014, 1, 1, 0,6,0)
+         
+def test_generate_filename():
+    assert src_code.generate_filename(date = datetime.datetime(2014,9,8), cadence=1) == "20140908_Gp_xr_1m.txt"
