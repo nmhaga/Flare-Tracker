@@ -3,3 +3,5 @@
 *.db
 *.ipynb
 */.ipynb_checkpoints/
+*.pyc
+*.orig

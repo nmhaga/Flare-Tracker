@@ -23,13 +23,13 @@ class Solarsoft(Base):
     
     event =Column(Integer, primary_key=True, nullable=False)
     ut_datetime = Column(DateTime, nullable = False)
-    peak = Column(Time, nullable=False)
+    peak = Column(DateTime, nullable=False)
     goes_class = Column(Numeric(14,12))
     derived_position = Column(String(20))
-    Region = Column(String(10))
-    
+    region = Column(String(10))
+
     def __repr__(self):
-        return "<Solarsoft({},{},{},{})>".format(self.ut_datetime, self.peak, self.goes_class, self.derived_position, self.Region)
+        return "<Solarsoft({},{},{},{},{})>".format(self.ut_datetime, self.peak, self.goes_class, self.derived_position, self.region)
 
 
 

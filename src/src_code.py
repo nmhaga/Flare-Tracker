@@ -171,7 +171,8 @@ def insert_xrayflux_data(xr_result_set, session):
     except IntegrityError:
         session.rollback()     
 
-def query_xr(session, ):
+def query_xr(session):
+
     current_time = datetime.datetime.utcnow()
     twenty_four_hours_ago = current_time - datetime.timedelta(hours=24)
     res = session.query(swp_database.Xrayflux).filter(swp_database.Xrayflux.ut_datetime > twenty_four_hours_ago).all()
