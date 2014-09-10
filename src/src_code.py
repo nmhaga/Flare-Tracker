@@ -3,10 +3,9 @@
 import datetime
 from BeautifulSoup import BeautifulSoup
 from urllib2 import Request, urlopen, URLError, HTTPError
-from sqlalchemy import create_engine
+from sqlalchemy import create_engine, update, insert
 from sqlalchemy.orm import Session
 from datetime import timedelta
-
 import swp_database
 
 def initialise_database():
@@ -99,17 +98,16 @@ def get_peakdate_from_startdate(start, peak):
 
     return peak_datetime     
     
-def insert_solarsoft_data(ss_result_set, session):
+def insert_solarsoft_data(ss_result_set, session): 
+    ss_result_set = list(set(ss_result_set)) #removes duplicates. Does NOT preserve order. 
    
     #ss_result_set comes as a list of tuples, in the form (ut_datetime, peak, goes_class, derived_position, region)
     solarsoft_object_list = []
     for row in ss_result_set:
         solarsoft_entry = swp_database.Solarsoft(ut_datetime=row[0], peak=row[1], goes_class=row[2], derived_position=row[3], region=row[4])
-        
-        #if (ret, ), = session.query(exists().where(solarsoft_entry.ut_datetime.in_(solarsoft_entry))):
-            #update the row
-        #else 
-            #insert it
+        res = session.query(swp_database.Solarsoft).filter(swp_database.Solarsoft.ut_datetime==row[0]).all()
+        if len(res) == 1: 
+            session.delete(res[0])
         solarsoft_object_list.append(solarsoft_entry)
       
     session.add_all(solarsoft_object_list) 

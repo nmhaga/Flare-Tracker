@@ -69,7 +69,14 @@ class test_database_parts_of_src_code(unittest.TestCase):
         
         self.assertEqual(len(res), 1)
     
-    
+    def test_fake_data_isnt_duplicated_in_database_even_if_in_same_list(self):
+        result = (self.dt, self.dt, 0.0001, "N19W19", 1919)
+        resultset = [result,result] 
+        src_code.insert_solarsoft_data(resultset, self.session)
+        res = self.session.query(swp_database.Solarsoft).filter(swp_database.Solarsoft.ut_datetime == self.dt).all()
+        
+        self.assertEqual(len(res), 1)
+        
 if __name__ == "__main__":
     unittest.main()
         
