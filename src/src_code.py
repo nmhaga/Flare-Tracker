@@ -32,7 +32,7 @@ def get_solarsoft_data():
     except HTTPError as e:
         print "The server couldn't fulfill the request."
         print 'Error code: ', e.code
-        return None
+        return None 
     except URLError as e:
         print 'We failed to reach a server.'
         print 'Reason: ', e.reason 
@@ -65,7 +65,7 @@ def read_solarsoft_data(html_content):
             Derived_position = col[6].find('a').string
             Region = col[6].find('font').contents[1]
         else: #if there is no link, we assume it's an unnamed region & just derived position is available. 
-            Derived_position = col[6].string
+            Derived_position = col[6].string.strip()
             Region = ""
 
         newR = Region.replace("(", "").replace(")", "").strip() #get the number from inside the brackets!
@@ -99,12 +99,16 @@ def get_peakdate_from_startdate(start, peak):
     return peak_datetime     
     
 def insert_solarsoft_data(ss_result_set, session):
-
+   
     #ss_result_set comes as a list of tuples, in the form (ut_datetime, peak, goes_class, derived_position, region)
     solarsoft_object_list = []
     for row in ss_result_set:
         solarsoft_entry = swp_database.Solarsoft(ut_datetime = row[0], peak = row[1], goes_class = row[2], derived_position = row[3], region = row[4])
         
+        #if (ret, ), = session.query(exists().where(solarsoft_entry.ut_datetime.in_(solarsoft_entry))):
+            #update the row
+        #else 
+            #insert it
         solarsoft_object_list.append(solarsoft_entry)
       
     session.add_all(solarsoft_object_list) 
@@ -115,8 +119,8 @@ def query_ss(session):
     twenty_four_hours_ago = current_time - datetime.timedelta(hours=24)
     res = session.query(swp_database.Solarsoft).filter(swp_database.Solarsoft.ut_datetime > twenty_four_hours_ago).all()
     #print res
-    #for row in res:
-        #print row.event, row.ut_datetime, row.peak, row.goes_class, row.derived_position, row.region
+    for row in res:
+        print row.event, row.ut_datetime, row.peak, row.goes_class, row.derived_position, row.region
 
      
 #Extrating X-ray flux data 
@@ -174,7 +178,7 @@ def insert_xrayflux_data(xr_result_set, session):
 def query_xr(session):
 
     current_time = datetime.datetime.utcnow()
-    twenty_four_hours_ago = current_time - datetime.timedelta(hours=24)
+    twenty_four_hours_ago = current_time - datetime.timedelta(days = 3)
     res = session.query(swp_database.Xrayflux).filter(swp_database.Xrayflux.ut_datetime > twenty_four_hours_ago).all()
     #print res
     #for row in res:

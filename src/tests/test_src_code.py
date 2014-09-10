@@ -4,6 +4,7 @@ import sys
 sys.path.append('../') # but pytest have to be called from test directory
 # That also affect to the 'sample_url.html' file below.
 import src_code
+import swp_database
 
 
 def test_read_solarsoft_data():
@@ -33,3 +34,17 @@ def test_get_peakdate_from_startdate():
          
 def test_generate_filename():
     assert src_code.generate_filename(date = datetime.datetime(2014,9,8), cadence=1) == "20140908_Gp_xr_1m.txt"
+    
+    assert src_code.generate_filename(date = datetime.datetime(2014,9,8), cadence=5) == "20140908_Gp_xr_5m.txt"
+    
+#test this method: goes_flare = convert_flare_format_into_decimal(goes_class)
+
+def test_fake_data_isnt_duplicated_in_database():
+    session = src_code.initialise_database()
+    dt = datetime.datetime(1990, 9, 19, 9, 19)
+    resultset = [(dt, dt, 0.0001, "N19W19", 1919)]
+    src_code.insert_solarsoft_data(resultset,session)    
+    src_code.insert_solarsoft_data(resultset,session)
+    res = session.query(swp_database.Solarsoft).filter(swp_database.Solarsoft.ut_datetime == dt).all()
+    assert len(res) == 1
+    
