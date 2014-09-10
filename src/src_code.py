@@ -65,7 +65,8 @@ def read_solarsoft_data(html_content):
             Derived_position = col[6].find('a').string
             Region = col[6].find('font').contents[1]
         else: #if there is no link, we assume it's an unnamed region & just derived position is available. 
-            Derived_position = col[6].string.strip()
+            Derived_position = col[6].string
+            Derived_position = Derived_position.strip()
             Region = ""
 
         newR = Region.replace("(", "").replace(")", "").strip() #get the number from inside the brackets!
@@ -103,7 +104,7 @@ def insert_solarsoft_data(ss_result_set, session):
     #ss_result_set comes as a list of tuples, in the form (ut_datetime, peak, goes_class, derived_position, region)
     solarsoft_object_list = []
     for row in ss_result_set:
-        solarsoft_entry = swp_database.Solarsoft(ut_datetime = row[0], peak = row[1], goes_class = row[2], derived_position = row[3], region = row[4])
+        solarsoft_entry = swp_database.Solarsoft(ut_datetime=row[0], peak=row[1], goes_class=row[2], derived_position=row[3], region=row[4])
         
         #if (ret, ), = session.query(exists().where(solarsoft_entry.ut_datetime.in_(solarsoft_entry))):
             #update the row
