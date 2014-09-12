@@ -83,8 +83,6 @@ def convert_flare_format_into_decimal(GOES_class):
     thenumber = digits * (10 ** class_exponent)
     return thenumber
     
-
-
 def get_peakdate_from_startdate(start, peak):
     #convert start date into datetime
     start_datetime = datetime.strptime(start, "%Y/%m/%d %H:%M:%S") 
@@ -118,8 +116,8 @@ def query_ss(session):
     twenty_four_hours_ago = current_time - timedelta(hours=24)
     res = session.query(Solarsoft).filter(Solarsoft.ut_datetime > twenty_four_hours_ago).all()
     #print res
-    for row in res:
-        print row.event, row.ut_datetime, row.peak, row.goes_class, row.derived_position, row.region
+    #for row in res:
+        #print row.event, row.ut_datetime, row.peak, row.goes_class, row.derived_position, row.region
 
      
 #Extrating X-ray flux data 
@@ -149,35 +147,36 @@ def get_xrayflux_data(date=None):
 
     return read_xrayflux_data(html_content)
 
-def read_xrayflux_data(html_content):  
+def read_xrayflux_data(html_content): 
     resultset = []
     for line in html_content.splitlines():
         #if line[0] !='#' and line[0] !=':':
         if line[0] not in ['#',':']:
             #print line.split()
             yyyy, mm, dd, hhmm, jd, ss, shortx, longx = line.split()   
-            date=datetime.strptime(yyyy+mm+dd+hhmm, "%Y%m%d%H%M")
-            result = (date, float(longx), float(shortx))
+            date = datetime.strptime(yyyy+mm+dd+hhmm, "%Y%m%d%H%M")
+            result = Xrayflux(ut_datetime=date, longx=float(longx), short=float(shortx))
             resultset.append(result)  
     return resultset
 
 def insert_xrayflux_data(xr_result_set, session):
-    #xr_result_set comes as a list of tuples, in the form (date, long, short)
+    xs_result_set = list(set(xr_result_set))
+    
+    #xr_result_set comes as a list of Xrayflux objects
     xrayflux_object_list = []
     for row in xr_result_set:
-        xray_entry = Xrayflux(ut_datetime = row[0], short = row[2], longx = row[1])
-        #print xray_entry
-        xrayflux_object_list.append(xray_entry)
-    try:    
-        session.add_all(xrayflux_object_list ) 
-        session.commit()
-    except IntegrityError:
-        session.rollback()     
-
+        res = session.query(Xrayflux).filter(Xrayflux.ut_datetime==row.ut_datetime).all()
+        if len(res) == 1: 
+            session.delete(res[0])
+        xrayflux_object_list.append(row)
+    
+    session.add_all(xrayflux_object_list) 
+    session.commit()
+     
 def query_xr(session):
 
     current_time = datetime.utcnow()
-    twenty_four_hours_ago = current_time - datetime.timedelta(days = 3)
+    twenty_four_hours_ago = current_time - timedelta(days = 3)
     res = session.query(Xrayflux).filter(Xrayflux.ut_datetime > twenty_four_hours_ago).all()
     #print res
     #for row in res:
