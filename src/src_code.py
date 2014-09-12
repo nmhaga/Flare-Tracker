@@ -1,8 +1,6 @@
 #This is where the source code is written.
 
-from datetime import timedelta
-import datetime
-#from datetime import datetime, timedelta
+from datetime import datetime, timedelta
 from BeautifulSoup import BeautifulSoup
 from urllib2 import Request, urlopen, URLError, HTTPError
 from sqlalchemy import create_engine, update, insert
@@ -58,7 +56,7 @@ def read_solarsoft_data(html_content):
         Peaktime = col[4].string
         #we need to extract date information from the start date to get the peak datetime:
         Peak = get_peakdate_from_startdate(Datetime, Peaktime)
-        Start = datetime.datetime.strptime(Datetime, "%Y/%m/%d %H:%M:%S") 
+        Start = datetime.strptime(Datetime, "%Y/%m/%d %H:%M:%S") 
         
         GOES_class = col[5].string
         GOES_flare = convert_flare_format_into_decimal(GOES_class)
@@ -72,8 +70,8 @@ def read_solarsoft_data(html_content):
             Region = ""
 
         newR = Region.replace("(", "").replace(")", "").strip() #get the number from inside the brackets!
-
-        result = (Start, Peak, GOES_flare, Derived_position, newR)
+        
+        result = Solarsoft(ut_datetime=Start, peak=Peak, derived_position=Derived_position, goes_class=GOES_flare, region=newR)
         resultset.append(result)  
     return resultset
     
@@ -89,36 +87,35 @@ def convert_flare_format_into_decimal(GOES_class):
 
 def get_peakdate_from_startdate(start, peak):
     #convert start date into datetime
-    start_datetime = datetime.datetime.strptime(start, "%Y/%m/%d %H:%M:%S") 
+    start_datetime = datetime.strptime(start, "%Y/%m/%d %H:%M:%S") 
     #get date part out
-    peak_time = datetime.datetime.strptime(peak, "%H:%M:%S").time()
+    peak_time = datetime.strptime(peak, "%H:%M:%S").time()
     
     #we assume that an event is shorter than 24 hours
     if (start_datetime.time() <= peak_time): #same day
-        peak_datetime = datetime.datetime.combine(start_datetime.date(), peak_time)
+        peak_datetime = datetime.combine(start_datetime.date(), peak_time)
     else: #peak time is the following day  
-        peak_datetime = datetime.datetime.combine(start_datetime.date() + datetime.timedelta(days=1), peak_time)
+        peak_datetime = datetime.combine(start_datetime.date() + timedelta(days=1), peak_time)
 
     return peak_datetime     
     
 def insert_solarsoft_data(ss_result_set, session): 
     ss_result_set = list(set(ss_result_set)) #removes duplicates. Does NOT preserve order. 
    
-    #ss_result_set comes as a list of tuples, in the form (ut_datetime, peak, goes_class, derived_position, region)
+    #ss_result_set comes as a list of SolarSoft objects
     solarsoft_object_list = []
     for row in ss_result_set:
-        solarsoft_entry = Solarsoft(ut_datetime=row[0], peak=row[1], goes_class=row[2], derived_position=row[3], region=row[4])
-        res = session.query(Solarsoft).filter(Solarsoft.ut_datetime==solarsoft_entry.ut_datetime ).all()
+        res = session.query(Solarsoft).filter(Solarsoft.ut_datetime==row.ut_datetime).all()
         if len(res) == 1: 
             session.delete(res[0])
-        solarsoft_object_list.append(solarsoft_entry)
+        solarsoft_object_list.append(row)
       
     session.add_all(solarsoft_object_list) 
     session.commit() 
     
 def query_ss(session): 
-    current_time = datetime.datetime.utcnow()
-    twenty_four_hours_ago = current_time - datetime.timedelta(hours=24)
+    current_time = datetime.utcnow()
+    twenty_four_hours_ago = current_time - timedelta(hours=24)
     res = session.query(Solarsoft).filter(Solarsoft.ut_datetime > twenty_four_hours_ago).all()
     #print res
     for row in res:
@@ -129,7 +126,7 @@ def query_ss(session):
 def generate_filename(date, cadence=1):
     #this file is only updated every hour or so, we may wish to pull from Gp_xr_1m.txt
     if date is None:
-        date = datetime.datetime.utcnow()
+        date = datetime.utcnow()
     filename = "{date}_Gp_xr_{cadence}m.txt".format(date=date.strftime("%Y%m%d"), cadence=cadence)
     return filename
 
@@ -159,7 +156,7 @@ def read_xrayflux_data(html_content):
         if line[0] not in ['#',':']:
             #print line.split()
             yyyy, mm, dd, hhmm, jd, ss, shortx, longx = line.split()   
-            date=datetime.datetime.strptime(yyyy+mm+dd+hhmm, "%Y%m%d%H%M")
+            date=datetime.strptime(yyyy+mm+dd+hhmm, "%Y%m%d%H%M")
             result = (date, float(longx), float(shortx))
             resultset.append(result)  
     return resultset
@@ -179,7 +176,7 @@ def insert_xrayflux_data(xr_result_set, session):
 
 def query_xr(session):
 
-    current_time = datetime.datetime.utcnow()
+    current_time = datetime.utcnow()
     twenty_four_hours_ago = current_time - datetime.timedelta(days = 3)
     res = session.query(Xrayflux).filter(Xrayflux.ut_datetime > twenty_four_hours_ago).all()
     #print res
