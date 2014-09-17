@@ -42,24 +42,29 @@ class test_src_code(unittest.TestCase):
         self.assertEqual(result[0].region, expectedReg1)
         self.assertEqual(result[4].region, expectedReg2)
     
-        
     def test_get_peakdate_from_startdate(self):
         start_value = "2013/12/31 23:58:50"
         peak_value = "00:06:00"
         expected = datetime(2014, 1, 1, 0,6,0)
         self.assertEqual(src_code.get_peakdate_from_startdate(start=start_value, peak=peak_value), expected)
              
-    def test_generate_filename(self):
-        self.assertEqual(src_code.generate_filename(date=datetime(2014,9,8), cadence=1), "20140908_Gp_xr_1m.txt")
-        
-        self.assertEqual(src_code.generate_filename(date=datetime(2014,9,8), cadence=5), "20140908_Gp_xr_5m.txt")
-        
+    
     #test this method: goes_flare = convert_flare_format_into_decimal(goes_class)
     def test_convert_flare_format_into_decimal(self):
         testvalue = src_code.convert_flare_format_into_decimal('C2.3')
         expectedvalue = 2.2999999999999996e-06
         
         self.assertEqual(testvalue, expectedvalue)
+        
+    def test_generate_filename(self):
+        self.assertEqual(src_code.generate_filename(date=datetime(2014,9,8), cadence=1), "20140908_Gp_xr_1m.txt")
+        
+        self.assertEqual(src_code.generate_filename(date=datetime(2014,9,8), cadence=5), "20140908_Gp_xr_5m.txt")
+           
+    def test_read_xrayflux_data(self):
+        with open('xrayflux_sample', 'r') as sample_file2:
+            content = sample_file2.read()
+        result = src_code.read_xrayflux_data(content)
      
 class test_solarsoft_database_parts_of_src_code(unittest.TestCase):
      
@@ -123,7 +128,8 @@ class test_XrayFlux_database_parts_of_src_code(unittest.TestCase):
         src_code.insert_xrayflux_data(resultset, self.session)
         res = self.session.query(Xrayflux).filter(Xrayflux.ut_datetime == self.dt).all()
         
-        self.assertEqual(len(res), 1)
+        self.assertEqual(len(res), 1)    
+    
         
 if __name__ == "__main__":
     unittest.main()
