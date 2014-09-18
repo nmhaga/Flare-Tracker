@@ -65,7 +65,10 @@ class test_src_code(unittest.TestCase):
         with open('xrayflux_sample', 'r') as sample_file2:
             content = sample_file2.read()
         result = src_code.read_xrayflux_data(content)
-     
+        
+        #tests length of xrayflux_sample
+        self.assertEqual(len(result), 10)
+        
 class test_solarsoft_database_parts_of_src_code(unittest.TestCase):
      
     def setUp(self): 
