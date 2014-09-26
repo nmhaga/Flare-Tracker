@@ -5,6 +5,7 @@ from BeautifulSoup import BeautifulSoup
 from urllib2 import Request, urlopen, URLError, HTTPError
 from sqlalchemy import create_engine, update, insert
 from sqlalchemy.orm import Session
+import matplotlib.pyplot as plt
 
 from swp_database import Base, Solarsoft, Xrayflux
 
@@ -173,14 +174,57 @@ def insert_xrayflux_data(xr_result_set, session):
     session.add_all(xrayflux_object_list) 
     session.commit()
      
-def query_xr(session):
-
+def query_xr(session, duration):
+    
     current_time = datetime.utcnow()
-    twenty_four_hours_ago = current_time - timedelta(days = 3)
+    twenty_four_hours_ago = current_time - duration
     res = session.query(Xrayflux).filter(Xrayflux.ut_datetime > twenty_four_hours_ago).all()
+    return res
     #print res
     #for row in res:
         #print row.ut_datetime, row.short, row.longx
+
+def plot_data(xrayfluxobjects, title='GOES X-ray Flux (1 minute data)'):
+    # reformat data:
+    ut_datetimes = []
+    shorts = []
+    longxs = []
+    
+    for xr in xrayfluxobjects:
+        ut_datetimes.append(xr.ut_datetime)
+        shorts.append(xr.short)
+        longxs.append(xr.longx)
+    
+    #Make Plot
+    figure = plt.figure()
+    
+    plt.plot(ut_datetimes, shorts, 'b', label='0.5--4.0 $\AA$', lw=2)
+    plt.plot(ut_datetimes, longxs, 'r', label='1.0--8.0 $\AA$', lw=2)
+    
+    
+
+    #Define Axes limits
+    axes = plt.gca()
+    axes.set_yscale("log")
+    axes.set_ylim(1e-9, 1e-2)
+    axes.set_title(title)
+    axes.set_ylabel('Watts m$^{-2}$')
+    axes.set_xlabel('Universal Time')
+ 
+
+    ax2 = axes.twinx()
+    ax2.set_yscale("log")
+    ax2.set_ylim(1e-9, 1e-2)
+    ax2.set_yticks((1e-9, 1e-8, 1e-7, 1e-6, 1e-5, 1e-4, 1e-3, 1e-2))
+    ax2.set_yticklabels((' ', 'A', 'B', 'C', 'M', 'X', ' '))
+
+    axes.yaxis.grid(True, 'major')
+    axes.xaxis.grid(False, 'major')
+    axes.legend()
+    
+    #figure.show()
+    figure.savefig("latest.png")
+    print "got here"
 
 
 def main():
@@ -205,10 +249,12 @@ def main():
 
     #query db for solarsoft & xray data
     query_ss(session)   
-    query_xr(session)
+    #xrayobjects = query_xr(session, timedelta(days=3))    
+    xrayobjects = query_xr(session, timedelta(hours=6))
     
     #plot graph and save to file
-
+    plot_data(xrayobjects)
+    
 if __name__ == "__main__":
     main()
 
