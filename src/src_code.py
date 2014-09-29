@@ -6,6 +6,7 @@ from urllib2 import Request, urlopen, URLError, HTTPError
 from sqlalchemy import create_engine, update, insert
 from sqlalchemy.orm import Session
 import matplotlib.pyplot as plt
+import matplotlib.dates
 
 from swp_database import Base, Solarsoft, Xrayflux
 
@@ -177,14 +178,14 @@ def insert_xrayflux_data(xr_result_set, session):
 def query_xr(session, duration):
     
     current_time = datetime.utcnow()
-    twenty_four_hours_ago = current_time - duration
-    res = session.query(Xrayflux).filter(Xrayflux.ut_datetime > twenty_four_hours_ago).all()
+    six_hours_data = current_time - duration
+    res = session.query(Xrayflux).filter(Xrayflux.ut_datetime > six_hours_data).all()
     return res
     #print res
     #for row in res:
         #print row.ut_datetime, row.short, row.longx
 
-def plot_data(xrayfluxobjects, title='GOES X-ray Flux (1 minute data)'):
+def plot_data(xrayfluxobjects, issixhour=True, title='GOES X-ray Flux (1 minute data)'):
     # reformat data:
     ut_datetimes = []
     shorts = []
@@ -210,8 +211,7 @@ def plot_data(xrayfluxobjects, title='GOES X-ray Flux (1 minute data)'):
     axes.set_title(title)
     axes.set_ylabel('Watts m$^{-2}$')
     axes.set_xlabel('Universal Time')
- 
-
+    
     ax2 = axes.twinx()
     ax2.set_yscale("log")
     ax2.set_ylim(1e-9, 1e-2)
@@ -219,8 +219,35 @@ def plot_data(xrayfluxobjects, title='GOES X-ray Flux (1 minute data)'):
     ax2.set_yticklabels((' ', 'A', 'B', 'C', 'M', 'X', ' '))
 
     axes.yaxis.grid(True, 'major')
-    axes.xaxis.grid(False, 'major')
+    axes.xaxis.grid(True, 'major')
     axes.legend()
+    
+    dtn = datetime.now()    
+    xticks = []
+    
+    if issixhour: #grid and ticks should be hourly           
+        formatter = matplotlib.dates.DateFormatter('%H:%M')
+        axes.xaxis.set_major_formatter(formatter)
+        startdt = datetime(dtn.year, dtn.month, dtn.day, dtn.hour, 0, 0) - timedelta(hours=6)
+        for i in range(0,6):
+            xticks.append(startdt + timedelta(hours=i))
+        
+    else:
+        formatter = matplotlib.dates.DateFormatter('%D/%m')
+        axes.xaxis.set_major_formatter(formatter)
+        startdt = datetime(dtn.year, dtn.month, dtn.day, dtn.hour, 0, 0) - timedelta(days=3)
+        for i in range(0,3):
+            xticks.append(startdt + timedelta(days=i))
+  
+    
+
+    
+    #this comes a little later to override whatever came before.
+    axes.set_xticks(xticks)
+    axes.set_xlim(xticks[0], xticks[-1])        
+    
+ 
+    #axes.xaxis.set_major_locator(HourLocator(byhour=range(24)))
     
     #figure.show()
     figure.savefig("latest.png")
@@ -248,12 +275,25 @@ def main():
     insert_xrayflux_data(xr_result_set, session)
 
     #query db for solarsoft & xray data
-    query_ss(session)   
-    #xrayobjects = query_xr(session, timedelta(days=3))    
-    xrayobjects = query_xr(session, timedelta(hours=6))
+    query_ss(session)    
+       
+    issixhour = False #change plot type here!
+    
+    theduration = timedelta(hours=6)
+    title = "GOES X-ray Flux (1 minute data)"
+    
+    if not issixhour:
+        theduration = timedelta(days=3)
+        title = "GOES X-ray Flux (5 minute data)"
+        
+    xrayobjects = query_xr(session, theduration)
     
     #plot graph and save to file
-    plot_data(xrayobjects)
+    plot_data(xrayobjects, issixhour, title)
+    
+    
+    
+    
     
 if __name__ == "__main__":
     main()
