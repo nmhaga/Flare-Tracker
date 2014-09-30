@@ -28,17 +28,19 @@ def initialise_database():
 
 #requesting Solarsoft data.
 def get_solarsoft_data():
+    print "Trying to get SolarSoft Data\n---------------------------"
     try: 
         response = urlopen('http://www.lmsal.com/solarsoft/last_events/')
-        print 'everything is fine'
+        print 'everything is fine for Solarsoft data'
     except HTTPError as e:
         print "The server couldn't fulfill the request."
         print 'Error code: ', e.code
-        return None 
+        print 'Attempting to continue...'
+        return []
     except URLError as e:
         print 'We failed to reach a server.'
         print 'Reason: ', e.reason 
-        return None
+        return []
     
     html_content = response.read()
     
@@ -135,16 +137,19 @@ def get_xrayflux_data(date=None):
     filename = generate_filename(date)
     
     #this file is only updated every hour or so, we may wish to pull from Gp_xr_1m.txt
+    print "Trying to get XrayFlux data\n--------------------------"
     try:
         response = urlopen('http://www.swpc.noaa.gov/ftpdir/lists/xray/'+filename)
-        print 'everything is fine'
+        print 'Everything is fine for Xrayflux data'
     except HTTPError as e:
         print "The server couldn't fulfill the request."
         print 'Error code: ', e.code
+        return ""
     except URLError as e:
         print 'We failed to reach a server.'
         print 'Reason: ', e.reason
-    
+        return ""
+        
     html_content = response.read()
 
     return read_xrayflux_data(html_content)
@@ -275,9 +280,9 @@ def main():
     insert_xrayflux_data(xr_result_set, session)
 
     #query db for solarsoft & xray data
-    query_ss(session)    
-       
-    issixhour = False #change plot type here!
+    query_ss(session)
+         
+    issixhour = True #change plot type here!
     
     theduration = timedelta(hours=6)
     title = "GOES X-ray Flux (1 minute data)"
