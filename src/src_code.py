@@ -35,7 +35,7 @@ def get_solarsoft_data():
     except HTTPError as e:
         print "The server couldn't fulfill the request."
         print 'Error code: ', e.code
-        print 'Attempting to continue...'
+        print 'Attempting to continue...\n--------------------------'
         return []
     except URLError as e:
         print 'We failed to reach a server.'
@@ -126,17 +126,17 @@ def query_ss(session):
      
 #Extrating X-ray flux data 
 def generate_filename(date, cadence=1):
-    #this file is only updated every hour or so, we may wish to pull from Gp_xr_1m.txt
+    #if date is None, we pull from the realtime Gp_xr_1m.txt since the other file is only updated every hour or so.
     if date is None:
-        date = datetime.utcnow()
-    filename = "{date}_Gp_xr_{cadence}m.txt".format(date=date.strftime("%Y%m%d"), cadence=cadence)
+        filename = "Gp_xr_{cadence}m.txt".format(cadence=cadence)
+    else:
+        filename = "{date}_Gp_xr_{cadence}m.txt".format(date=date.strftime("%Y%m%d"), cadence=cadence)
     return filename
 
 def get_xrayflux_data(date=None):
         
-    filename = generate_filename(date)
+    filename = generate_filename(date) #if date is None, does realtime.
     
-    #this file is only updated every hour or so, we may wish to pull from Gp_xr_1m.txt
     print "Trying to get XrayFlux data\n--------------------------"
     try:
         response = urlopen('http://www.swpc.noaa.gov/ftpdir/lists/xray/'+filename)
@@ -144,6 +144,7 @@ def get_xrayflux_data(date=None):
     except HTTPError as e:
         print "The server couldn't fulfill the request."
         print 'Error code: ', e.code
+        print 'Attempting to continue...\n--------------------------'
         return ""
     except URLError as e:
         print 'We failed to reach a server.'
@@ -225,7 +226,8 @@ def plot_data(xrayfluxobjects, issixhour=True, title='GOES X-ray Flux (1 minute 
 
     axes.yaxis.grid(True, 'major')
     axes.xaxis.grid(True, 'major')
-    axes.legend()
+    
+    axes.legend(loc=9, ncol=2)
     
     dtn = datetime.now()    
     xticks = []
@@ -233,15 +235,15 @@ def plot_data(xrayfluxobjects, issixhour=True, title='GOES X-ray Flux (1 minute 
     if issixhour: #grid and ticks should be hourly           
         formatter = matplotlib.dates.DateFormatter('%H:%M')
         axes.xaxis.set_major_formatter(formatter)
-        startdt = datetime(dtn.year, dtn.month, dtn.day, dtn.hour, 0, 0) - timedelta(hours=6)
-        for i in range(0,6):
+        startdt = datetime(dtn.year, dtn.month, dtn.day, dtn.hour, 0, 0) - timedelta(hours=7)
+        for i in range(0,7):
             xticks.append(startdt + timedelta(hours=i))
         
     else:
         formatter = matplotlib.dates.DateFormatter('%D/%m')
         axes.xaxis.set_major_formatter(formatter)
-        startdt = datetime(dtn.year, dtn.month, dtn.day, dtn.hour, 0, 0) - timedelta(days=3)
-        for i in range(0,3):
+        startdt = datetime(dtn.year, dtn.month, dtn.day, dtn.hour, 0, 0) - timedelta(days=4)
+        for i in range(0,4):
             xticks.append(startdt + timedelta(days=i))
   
     
