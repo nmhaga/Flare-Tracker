@@ -7,7 +7,7 @@ from sqlalchemy import create_engine, update, insert
 from sqlalchemy.orm import Session
 import matplotlib.pyplot as plt
 import matplotlib.dates
-
+import pylab
 from swp_database import Base, Solarsoft, Xrayflux
 
 
@@ -207,14 +207,14 @@ def plot_data(xrayfluxobjects, issixhour=True, title='GOES X-ray Flux (1 minute 
     
     plt.plot(ut_datetimes, shorts, 'b', label='0.5--4.0 $\AA$', lw=2)
     plt.plot(ut_datetimes, longxs, 'r', label='1.0--8.0 $\AA$', lw=2)
-    
-    
+    plt.figtext(.95, .35, "GOES 15 0.5-4.0 A", color='blue', rotation='vertical')
+    plt.figtext(.95, .70, "GOES 15 1.5-4.0 A", color='red', rotation='vertical')
 
     #Define Axes limits
     axes = plt.gca()
     axes.set_yscale("log")
     axes.set_ylim(1e-9, 1e-2)
-    axes.set_title(title)
+    axes.set_title(title, y=1.08)
     axes.set_ylabel('Watts m$^{-2}$')
     axes.set_xlabel('Universal Time')
     
@@ -227,13 +227,14 @@ def plot_data(xrayfluxobjects, issixhour=True, title='GOES X-ray Flux (1 minute 
     axes.yaxis.grid(True, 'major')
     axes.xaxis.grid(True, 'major')
     
-    axes.legend(loc=9, ncol=2)
+    axes.legend(loc=3, ncol=2, bbox_to_anchor=(0., 1.02, 1., .102), borderaxespad=0.)
     
     dtn = datetime.now()    
     xticks = []
     
+    
     if issixhour: #grid and ticks should be hourly           
-        formatter = matplotlib.dates.DateFormatter('%H:%M')
+        formatter = matplotlib.dates.DateFormatter('%H%M')
         axes.xaxis.set_major_formatter(formatter)
         startdt = datetime(dtn.year, dtn.month, dtn.day, dtn.hour, 0, 0) - timedelta(hours=7)
         for i in range(0,7):
