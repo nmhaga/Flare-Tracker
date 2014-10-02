@@ -185,7 +185,7 @@ def query_xr(session, duration):
     
     current_time = datetime.utcnow()
     six_hours_data = current_time - duration
-    res = session.query(Xrayflux).filter(Xrayflux.ut_datetime > six_hours_data).all()
+    res = session.query(Xrayflux).filter(Xrayflux.ut_datetime > six_hours_data).order_by(Xrayflux.ut_datetime).all()
     return res
     #print res
     #for row in res:
@@ -207,14 +207,16 @@ def plot_data(xrayfluxobjects, issixhour=True, title='GOES X-ray Flux (1 minute 
     
     plt.plot(ut_datetimes, shorts, 'b', label='0.5--4.0 $\AA$', lw=2)
     plt.plot(ut_datetimes, longxs, 'r', label='1.0--8.0 $\AA$', lw=2)
-    plt.figtext(.95, .35, "GOES 15 0.5-4.0 A", color='blue', rotation='vertical')
-    plt.figtext(.95, .70, "GOES 15 1.5-4.0 A", color='red', rotation='vertical')
-
+    plt.figtext(.95, .40, "GOES 15 0.5-4.0 A", color='blue', size='large', rotation='vertical')
+    plt.figtext(.95, .75, "GOES 15 1.0-8.0 A", color='red', size='large', rotation='vertical')
+    
+    
+    
     #Define Axes limits
     axes = plt.gca()
     axes.set_yscale("log")
     axes.set_ylim(1e-9, 1e-2)
-    axes.set_title(title, y=1.08)
+    axes.set_title(title, y=1.07)
     axes.set_ylabel('Watts m$^{-2}$')
     axes.set_xlabel('Universal Time')
     
@@ -227,27 +229,32 @@ def plot_data(xrayfluxobjects, issixhour=True, title='GOES X-ray Flux (1 minute 
     axes.yaxis.grid(True, 'major')
     axes.xaxis.grid(True, 'major')
     
-    axes.legend(loc=3, ncol=2, bbox_to_anchor=(0., 1.02, 1., .102), borderaxespad=0.)
+   #axes.legend(loc=3, ncol=2, bbox_to_anchor=(0., 1.02, 1., .102), borderaxespad=0.)
     
     dtn = datetime.now()    
     xticks = []
     
     
-    if issixhour: #grid and ticks should be hourly           
+    if issixhour: #grid and ticks should be hourly     
+        filename = "latest6hr.png"      
         formatter = matplotlib.dates.DateFormatter('%H%M')
-        axes.xaxis.set_major_formatter(formatter)
         startdt = datetime(dtn.year, dtn.month, dtn.day, dtn.hour, 0, 0) - timedelta(hours=7)
         for i in range(0,7):
             xticks.append(startdt + timedelta(hours=i))
-        
+            
+        utcnow = datetime.utcnow()
+        plt.figtext(0, 0.02, utcnow.strftime("Updated: %d %b %Y %H:%M UT")) 
+    
     else:
-        formatter = matplotlib.dates.DateFormatter('%D/%m')
+        filename = "latest3day.png" 
+        formatter = matplotlib.dates.DateFormatter('%b %d')
         axes.xaxis.set_major_formatter(formatter)
-        startdt = datetime(dtn.year, dtn.month, dtn.day, dtn.hour, 0, 0) - timedelta(days=4)
+        startdt = datetime(dtn.year, dtn.month, dtn.day, dtn.hour, 0, 0) - timedelta(days=2)
         for i in range(0,4):
             xticks.append(startdt + timedelta(days=i))
-  
-    
+        
+        utcnow = datetime.utcnow()
+        plt.figtext(0, 0.02, utcnow.strftime("Updated: %d %b %Y %H:%M UT"))
 
     
     #this comes a little later to override whatever came before.
@@ -258,7 +265,7 @@ def plot_data(xrayfluxobjects, issixhour=True, title='GOES X-ray Flux (1 minute 
     #axes.xaxis.set_major_locator(HourLocator(byhour=range(24)))
     
     #figure.show()
-    figure.savefig("latest.png")
+    figure.savefig(filename)
     print "got here"
 
 
@@ -274,18 +281,25 @@ def main():
     #insert into db
     insert_solarsoft_data(ss_result_set, session)
     
+   # issixhour = False #change plot type here!
+    issixhour = False #change plot type here!      
+    dt = datetime.now()
+    
     #get xrayflux data, 
     xr_result_set = get_xrayflux_data()
-    
-    #print xr_result_set
-    
-    #insert into db
+    xr_result_set += get_xrayflux_data(dt)
+    #insert it
     insert_xrayflux_data(xr_result_set, session)
+    
+    if not issixhour:
+        #get more data
+        xr_result_set = get_xrayflux_data(dt - timedelta(days=1))
+        xr_result_set += get_xrayflux_data(dt - timedelta(days=2))
+        #and insert it
+        insert_xrayflux_data(xr_result_set, session)
 
     #query db for solarsoft & xray data
     query_ss(session)
-         
-    issixhour = True #change plot type here!
     
     theduration = timedelta(hours=6)
     title = "GOES X-ray Flux (1 minute data)"
