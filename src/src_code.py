@@ -237,7 +237,8 @@ def plot_data(xrayfluxobjects, issixhour=True, title='GOES X-ray Flux (1 minute 
     
     if issixhour: #grid and ticks should be hourly     
         filename = "latest6hr.png"      
-        formatter = matplotlib.dates.DateFormatter('%H%M')
+        formatter = matplotlib.dates.DateFormatter('%H:%M')
+        locator = matplotlib.dates.MinuteLocator(interval=15)
         startdt = datetime(dtn.year, dtn.month, dtn.day, dtn.hour, 0, 0) - timedelta(hours=7)
         for i in range(0,7):
             xticks.append(startdt + timedelta(hours=i))
@@ -248,20 +249,23 @@ def plot_data(xrayfluxobjects, issixhour=True, title='GOES X-ray Flux (1 minute 
     else:
         filename = "latest3day.png" 
         formatter = matplotlib.dates.DateFormatter('%b %d')
+        locator = matplotlib.dates.HourLocator(interval=6)
         axes.xaxis.set_major_formatter(formatter)
-        startdt = datetime(dtn.year, dtn.month, dtn.day, dtn.hour, 0, 0) - timedelta(days=2)
+        startdt = datetime(dtn.year, dtn.month, dtn.day, 0, 0, 0) - timedelta(days=2)
         for i in range(0,4):
             xticks.append(startdt + timedelta(days=i))
         
         utcnow = datetime.utcnow()
         plt.figtext(0, 0.02, utcnow.strftime("Updated: %d %b %Y %H:%M UT"))
+        plt.figtext(0.9,0.9,"Begin")
 
     
     #this comes a little later to override whatever came before.
+    
     axes.set_xticks(xticks)
     axes.set_xlim(xticks[0], xticks[-1])        
-    
- 
+    axes.xaxis.set_minor_locator(locator)
+    axes.xaxis.set_major_formatter(formatter)
     #axes.xaxis.set_major_locator(HourLocator(byhour=range(24)))
     
     #figure.show()
@@ -313,10 +317,28 @@ def main():
     #plot graph and save to file
     plot_data(xrayobjects, issixhour, title)
     
+def fakemain():
+    #setup database for the session 
+    session = initialise_database()
     
+    #issixhour = True #change plot type here!
+    issixhour = False #change plot type here!    
+    #query db for solarsoft & xray data
+    query_ss(session)
     
+    theduration = timedelta(hours=6)
+    title = "GOES X-ray Flux (1 minute data)"
+    
+    if not issixhour:
+        theduration = timedelta(days=3)
+        title = "GOES X-ray Flux (5 minute data)"
+        
+    xrayobjects = query_xr(session, theduration)
+    
+    #plot graph and save to file
+    plot_data(xrayobjects, issixhour, title)
     
     
 if __name__ == "__main__":
-    main()
+    fakemain()
 

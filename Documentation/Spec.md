@@ -109,8 +109,9 @@ For both of them the data will come as a list of tuples.
 //Explain here how you would specify date-range. Where datetime > (end of today - 3 days) 
 We want to specify the date between now and 3 days ago. we can do this in python using the datetime and timedelta functions.
 We want it to snap to the nearest date. to do this: 
+ 
 we set up the datetime where hour, minute and second is equal to zero.
-By the end of the day we want the plot to be full 
+By the end of the day we want the plot to be full.
 
 ##come back to this! Think about how to make the graph look niiice. 
 ````python
