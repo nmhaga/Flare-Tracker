@@ -205,8 +205,8 @@ def plot_data(xrayfluxobjects, issixhour=True, title='GOES X-ray Flux (1 minute 
     #Make Plot
     figure = plt.figure()
     
-    plt.plot(ut_datetimes, shorts, 'b', label='0.5--4.0 $\AA$', lw=2)
-    plt.plot(ut_datetimes, longxs, 'r', label='1.0--8.0 $\AA$', lw=2)
+    plt.plot(ut_datetimes, shorts, 'b', label='0.5--4.0 $\AA$', lw=1.2)
+    plt.plot(ut_datetimes, longxs, 'r', label='1.0--8.0 $\AA$', lw=1.2)
     plt.figtext(.95, .40, "GOES 15 0.5-4.0 A", color='blue', size='large', rotation='vertical')
     plt.figtext(.95, .75, "GOES 15 1.0-8.0 A", color='red', size='large', rotation='vertical')
     
@@ -226,7 +226,7 @@ def plot_data(xrayfluxobjects, issixhour=True, title='GOES X-ray Flux (1 minute 
     ax2.set_yticks((1e-9, 1e-8, 1e-7, 1e-6, 1e-5, 1e-4, 1e-3, 1e-2))
     ax2.set_yticklabels((' ', 'A', 'B', 'C', 'M', 'X', ' '))
 
-    axes.yaxis.grid(True, 'major')
+    axes.yaxis.grid(True, 'major', ls='-')
     axes.xaxis.grid(True, 'major')
     
    #axes.legend(loc=3, ncol=2, bbox_to_anchor=(0., 1.02, 1., .102), borderaxespad=0.)
@@ -244,7 +244,8 @@ def plot_data(xrayfluxobjects, issixhour=True, title='GOES X-ray Flux (1 minute 
             xticks.append(startdt + timedelta(hours=i))
             
         utcnow = datetime.utcnow()
-        plt.figtext(0, 0.02, utcnow.strftime("Updated: %d %b %Y %H:%M UT")) 
+        plt.figtext(0, 0.02, utcnow.strftime("Updated: %d %b %Y %H:%M UT"))
+        plt.figtext(0.6,0.92,startdt.strftime("Begin: %d %b %Y %H:%M UT"))
     
     else:
         filename = "latest3day.png" 
@@ -257,7 +258,7 @@ def plot_data(xrayfluxobjects, issixhour=True, title='GOES X-ray Flux (1 minute 
         
         utcnow = datetime.utcnow()
         plt.figtext(0, 0.02, utcnow.strftime("Updated: %d %b %Y %H:%M UT"))
-        plt.figtext(0.9,0.9,"Begin")
+        plt.figtext(0.6,0.92,startdt.strftime("Begin: %d %b %Y %H:%M UT"))
 
     
     #this comes a little later to override whatever came before.
@@ -285,7 +286,7 @@ def main():
     #insert into db
     insert_solarsoft_data(ss_result_set, session)
     
-   # issixhour = False #change plot type here!
+    #issixhour = True #change plot type here!
     issixhour = False #change plot type here!      
     dt = datetime.now()
     
