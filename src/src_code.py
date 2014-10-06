@@ -50,8 +50,9 @@ def get_solarsoft_data():
 def read_solarsoft_data(html_content):
     soup = BeautifulSoup(html_content)
     table = soup.find('table', border=2, cellpadding=5, cellspacing=2)
-
     resultset = []
+    if table is None: #the website doesn't look how we expect
+        return resultset
     for row in table.findAll('tr'):
         col = row.findAll('td')
         if len(col) < 7:
@@ -274,6 +275,7 @@ def plot_data(xrayfluxobjects, issixhour=True, title='GOES X-ray Flux (1 minute 
     print "got here"
 
 
+
 def main():
     #setup database for the session 
     session = initialise_database()
@@ -286,8 +288,8 @@ def main():
     #insert into db
     insert_solarsoft_data(ss_result_set, session)
     
-    #issixhour = True #change plot type here!
-    issixhour = False #change plot type here!      
+    issixhour = True #change plot type here!
+    #issixhour = False #change plot type here!
     dt = datetime.now()
     
     #get xrayflux data, 
@@ -322,8 +324,8 @@ def fakemain():
     #setup database for the session 
     session = initialise_database()
     
-    #issixhour = True #change plot type here!
-    issixhour = False #change plot type here!    
+    issixhour = True #change plot type here!
+    #issixhour = False #change plot type here!    
     #query db for solarsoft & xray data
     query_ss(session)
     
@@ -341,5 +343,5 @@ def fakemain():
     
     
 if __name__ == "__main__":
-    fakemain()
+    main()
 
