@@ -131,12 +131,15 @@ As well as the dtnow that we do above, we also need to specify the threshold for
 - Put the data into the format required by matplotlib (probably using a list comprehension) 
 - Plot graph
 
+The 'begin' text will be at the upper right corner. It includes the start datetime of the plot.
+The 'updated' text displayed at the lower left corner includes the datetime the plot is updated.
+ 
 The background colour will be white. 
 The short plot will be Blue
 The long plot will be Red
-Annotations will be in blackack and we want to annotate the long only. 
+Annotations will be in black and we want to annotate the long only. 
 The y-scale needs to be logorithmic.
-We will want to mark the class scale on the other axis
+We will want to mark the class scale on the other y-axis, i.e A, B, C, M, X
 
 ###Database Format
 We will use the Python toolkit and Object Relational Mapper (ORM) called SQLAlchemy.
