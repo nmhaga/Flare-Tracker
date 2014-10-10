@@ -6,8 +6,9 @@ from urllib2 import Request, urlopen, URLError, HTTPError
 from sqlalchemy import create_engine, update, insert
 from sqlalchemy.orm import Session
 import matplotlib.pyplot as plt
-import matplotlib.dates
+import matplotlib.dates as mdates
 import pylab
+from decimal import Decimal
 from swp_database import Base, Solarsoft, Xrayflux
 
 
@@ -27,7 +28,7 @@ def initialise_database():
     return session
 
 #requesting Solarsoft data.
-def get_solarsoft_data():
+def get_solarsoft_data(date=None):
     print "Trying to get SolarSoft Data\n---------------------------"
     try: 
         response = urlopen('http://www.lmsal.com/solarsoft/last_events/')
@@ -116,10 +117,11 @@ def insert_solarsoft_data(ss_result_set, session):
     session.add_all(solarsoft_object_list) 
     session.commit() 
     
-def query_ss(session): 
+def query_ss(session, duration, minimum): 
     current_time = datetime.utcnow()
-    twenty_four_hours_ago = current_time - timedelta(hours=24)
-    res = session.query(Solarsoft).filter(Solarsoft.ut_datetime > twenty_four_hours_ago).all()
+    six_hour_data = current_time - duration
+    res = session.query(Solarsoft).filter(Solarsoft.ut_datetime > six_hour_data).filter(Solarsoft.goes_class > minimum).all()
+    return res
     #print res
     #for row in res:
         #print row.event, row.ut_datetime, row.peak, row.goes_class, row.derived_position, row.region
@@ -191,8 +193,10 @@ def query_xr(session, duration):
     #print res
     #for row in res:
         #print row.ut_datetime, row.short, row.longx
+        
+     
 
-def plot_data(xrayfluxobjects, issixhour=True, title='GOES X-ray Flux (1 minute data)'):
+def plot_data(xrayfluxobjects, solarsoftobjects, issixhour=True, title='GOES X-ray Flux (1 minute data)'):
     # reformat data:
     ut_datetimes = []
     shorts = []
@@ -204,6 +208,7 @@ def plot_data(xrayfluxobjects, issixhour=True, title='GOES X-ray Flux (1 minute 
         longxs.append(xr.longx)
     
     #Make Plot
+    print "plotting"
     figure = plt.figure()
     
     plt.plot(ut_datetimes, shorts, 'b', label='0.5--4.0 $\AA$', lw=1.2)
@@ -211,8 +216,15 @@ def plot_data(xrayfluxobjects, issixhour=True, title='GOES X-ray Flux (1 minute 
     plt.figtext(.95, .40, "GOES 15 0.5-4.0 A", color='blue', size='large', rotation='vertical')
     plt.figtext(.95, .75, "GOES 15 1.0-8.0 A", color='red', size='large', rotation='vertical')
     
+    solarsofttuples = []
+    for ss in solarsoftobjects:
+        solarsofttuples.append((ss.peak, ss.goes_class, ss.region))
     
-    
+    for peakdt, g_class, region_no in solarsofttuples:
+        plt.annotate(region_no, xy=(mdates.date2num(peakdt + timedelta(minutes=10)), g_class*Decimal(2)), rotation=45 )
+                #bbox=dict(boxstyle='round', fc='white', alpha=0.5))
+        #plt.annotate('.', xy=(mdates.date2num(x), y), rotation=45 )
+   
     #Define Axes limits
     axes = plt.gca()
     axes.set_yscale("log")
@@ -234,12 +246,10 @@ def plot_data(xrayfluxobjects, issixhour=True, title='GOES X-ray Flux (1 minute 
     
     dtn = datetime.now()    
     xticks = []
-    
-    
     if issixhour: #grid and ticks should be hourly     
         filename = "latest6hr.png"      
-        formatter = matplotlib.dates.DateFormatter('%H:%M')
-        locator = matplotlib.dates.MinuteLocator(interval=15)
+        formatter = mdates.DateFormatter('%H:%M')
+        locator = mdates.MinuteLocator(interval=15)
         startdt = datetime(dtn.year, dtn.month, dtn.day, dtn.hour, 0, 0) - timedelta(hours=7)
         for i in range(0,7):
             xticks.append(startdt + timedelta(hours=i))
@@ -250,8 +260,8 @@ def plot_data(xrayfluxobjects, issixhour=True, title='GOES X-ray Flux (1 minute 
     
     else:
         filename = "latest3day.png" 
-        formatter = matplotlib.dates.DateFormatter('%b %d')
-        locator = matplotlib.dates.HourLocator(interval=6)
+        formatter = mdates.DateFormatter('%b %d')
+        locator = mdates.HourLocator(interval=6)
         axes.xaxis.set_major_formatter(formatter)
         startdt = datetime(dtn.year, dtn.month, dtn.day, 0, 0, 0) - timedelta(days=2)
         for i in range(0,4):
@@ -272,76 +282,71 @@ def plot_data(xrayfluxobjects, issixhour=True, title='GOES X-ray Flux (1 minute 
     
     #figure.show()
     figure.savefig(filename)
-    print "got here"
+    print "done plotting"
 
+def makeaplot(session, issixhour=True):
+    theduration = timedelta(hours=6)
+    
+    title = "GOES X-ray Flux (1 minute data)"
+    
+    if not issixhour:
+        theduration = timedelta(days=3)
+        title = "GOES X-ray Flux (5 minute data)"
+        
+    xrayobjects = query_xr(session, theduration)
+    solarsoftobjects = query_ss(session, theduration, Decimal(5e-6))
+    #plot graph and save to file
+    plot_data(xrayobjects, solarsoftobjects, issixhour, title) 
 
 
 def main():
     #setup database for the session 
     session = initialise_database()
-
-    #get solarsoft data
-    ss_result_set = get_solarsoft_data()
-    
-    #print ss_result_set
-
-    #insert into db
-    insert_solarsoft_data(ss_result_set, session)
     
     issixhour = True #change plot type here!
     #issixhour = False #change plot type here!
     dt = datetime.now()
     
+    #get solarsoft data
+    ss_result_set = get_solarsoft_data()
+    ss_result_set += get_solarsoft_data(dt)
+    
+    #insert into db
+    insert_solarsoft_data(ss_result_set, session)
+    
+    #get more solarsoft data
+    ss_result_set = get_solarsoft_data(dt - timedelta(days=1))
+    ss_result_set += get_solarsoft_data(dt - timedelta(days=2))
+    
+    #and insert it
+    insert_solarsoft_data(ss_result_set, session)
+
     #get xrayflux data, 
     xr_result_set = get_xrayflux_data()
     xr_result_set += get_xrayflux_data(dt)
+    
     #insert it
     insert_xrayflux_data(xr_result_set, session)
     
-    if not issixhour:
-        #get more data
-        xr_result_set = get_xrayflux_data(dt - timedelta(days=1))
-        xr_result_set += get_xrayflux_data(dt - timedelta(days=2))
-        #and insert it
-        insert_xrayflux_data(xr_result_set, session)
+    #get more xrayflux data
+    xr_result_set = get_xrayflux_data(dt - timedelta(days=1))
+    xr_result_set += get_xrayflux_data(dt - timedelta(days=2))
+   
+    #and insert it
+    insert_xrayflux_data(xr_result_set, session)
 
-    #query db for solarsoft & xray data
-    query_ss(session)
-    
-    theduration = timedelta(hours=6)
-    title = "GOES X-ray Flux (1 minute data)"
-    
-    if not issixhour:
-        theduration = timedelta(days=3)
-        title = "GOES X-ray Flux (5 minute data)"
-        
-    xrayobjects = query_xr(session, theduration)
-    
-    #plot graph and save to file
-    plot_data(xrayobjects, issixhour, title)
+
+    makeaplot(session, True) #6hour
+    makeaplot(session, False) #3day
     
 def fakemain():
     #setup database for the session 
     session = initialise_database()
+    makeaplot(session, True) #6hour
+    makeaplot(session, False) #3day
     
-    issixhour = True #change plot type here!
-    #issixhour = False #change plot type here!    
-    #query db for solarsoft & xray data
-    query_ss(session)
-    
-    theduration = timedelta(hours=6)
-    title = "GOES X-ray Flux (1 minute data)"
-    
-    if not issixhour:
-        theduration = timedelta(days=3)
-        title = "GOES X-ray Flux (5 minute data)"
-        
-    xrayobjects = query_xr(session, theduration)
-    
-    #plot graph and save to file
-    plot_data(xrayobjects, issixhour, title)
     
     
 if __name__ == "__main__":
-    main()
+    fakemain()
 
