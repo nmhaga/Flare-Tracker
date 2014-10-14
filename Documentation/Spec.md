@@ -8,11 +8,11 @@ This document explains the fuctional design of the X-ray plot from GOES with ann
 
 Overview
 ---------
-The Flare-Tracker program will pull data from online resources every 5 minutes. It will organise and store data into a database, and then pull that data from the database and plot X-ray flux with annotations of Active Region numbers. The plot will be displayed on one of the screens in the Space Weather Centre.
+The Flare-Tracker program will pull data from online resources every 1 minutes. It will organise and store data into a database, and then pull that data from the database and plot X-ray flux with annotations of Active Region numbers. The plot will be displayed on one of the screens in the Space Weather Centre.
 
 Technical Design
 ----------------
-The program will be written in Python, using sqlite3 (connecting to python with SQLALchemy) and matplotlib. The data will be pulled from online sources, and inserted into a database. Every five minutes a graph will be plotted using matplotlib annotating the areas with the flare i.e from C to X or higher level Class. In a case where there is no active region number, we assume it is an unnamed region and annotate with the derived position.
+The program will be written in Python, using sqlite3 (connecting to python with SQLALchemy) and matplotlib. The data will be pulled from online sources, and inserted into a database. Every minute a graph will be plotted using matplotlib annotating the areas with the flare i.e from C to X or higher level Class. In a case where there is no active region number, we assume it is an unnamed region and annotate with the derived position.
 
 ###Program Flow Chart
 
@@ -34,7 +34,7 @@ The program will be written in Python, using sqlite3 (connecting to python with 
 ###Conditions
 
 1. Solar soft (Annotations)
-   if class level is greater or equal to M: Annotate with Active region
+   if class level is greater or equal to C: Annotate with Active region
    Otherwise do not annotate
 
 ###Data Extraction and Parsing
@@ -106,11 +106,11 @@ For both of them the data will come as a list of tuples.
 - Close cursor and connection 
 
 #### Pull x-ray data: 
-//Explain here how you would specify date-range. Where datetime > (end of today - 3 days) 
+
 We want to specify the date between now and 3 days ago. we can do this in python using the datetime and timedelta functions.
 We want it to snap to the nearest date. to do this: 
  
-we set up the datetime where hour, minute and second is equal to zero.
+We set up the datetime where hour, minute and second is equal to zero.
 By the end of the day we want the plot to be full.
 
 ##come back to this! Think about how to make the graph look niiice. 
@@ -125,7 +125,8 @@ dt3days = dtnow - datetime.timedelta(days=3)
 As well as the dtnow that we do above, we also need to specify the threshold for region annotation. The threshold will be M-class (which corresponds to greater than 10*-5). This would be specified as "WHERE GOES_CLASS M >= 1.0e-*-5" 
 
 
-###Plottingcd
+###Plotting
+We will plot both the 3day data and the 6 hour data 
 - import matplotlib pyplot module
 - Configure/create the axes
 - Put the data into the format required by matplotlib (probably using a list comprehension) 
@@ -138,8 +139,14 @@ The background colour will be white.
 The short plot will be Blue
 The long plot will be Red
 Annotations will be in black and we want to annotate the long only. 
-The y-scale needs to be logorithmic.
+The y-scale needs to be logorithmic and limit the y axis from (1e-9 to 1e-2)
 We will want to mark the class scale on the other y-axis, i.e A, B, C, M, X
+
+Matplolib requires the $Display environment variable, so we have to call matplotlib.use('Agg') before importing matplotlib.py. #http://stackoverflow.com/questions/4931376/generating-matplotlib-graphs-without-a-running-x-server
+
+CRON will be used to process the program to run every minute of everyday. * * * * * cd ~/Documents/SWP/src/ && python src_code.py >> ~/Documents/src_code.log 2>&1
+2>&1 is important because it lets yo write errors in the same log file.
+
 
 ###Database Format
 We will use the Python toolkit and Object Relational Mapper (ORM) called SQLAlchemy.
