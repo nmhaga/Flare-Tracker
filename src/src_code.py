@@ -1,15 +1,21 @@
 #This is where the source code is written.
+import matplotlib as mpl
+mpl.use('Agg')
+import matplotlib.pyplot as plt
+#We need to use 'Agg' before we import pyplot, as that prevents issues when running it from cron
 
+#http://stackoverflow.com/questions/4931376/generating-matplotlib-graphs-without-a-running-x-server
+
+import matplotlib.dates as mdates
 from datetime import datetime, timedelta
 from BeautifulSoup import BeautifulSoup
 from urllib2 import Request, urlopen, URLError, HTTPError
 from sqlalchemy import create_engine, update, insert
 from sqlalchemy.orm import Session
-import matplotlib.pyplot as plt
-import matplotlib.dates as mdates
 import pylab
 from decimal import Decimal
 from swp_database import Base, Solarsoft, Xrayflux
+import os
 
 
 def initialise_database():
@@ -210,21 +216,21 @@ def plot_data(xrayfluxobjects, solarsoftobjects, issixhour=True, title='GOES X-r
     #Make Plot
     print "plotting"
     figure = plt.figure()
-    
+
     plt.plot(ut_datetimes, shorts, 'b', label='0.5--4.0 $\AA$', lw=1.2)
     plt.plot(ut_datetimes, longxs, 'r', label='1.0--8.0 $\AA$', lw=1.2)
     plt.figtext(.95, .40, "GOES 15 0.5-4.0 A", color='blue', size='large', rotation='vertical')
     plt.figtext(.95, .75, "GOES 15 1.0-8.0 A", color='red', size='large', rotation='vertical')
     
+    
     solarsofttuples = []
     for ss in solarsoftobjects:
         solarsofttuples.append((ss.peak, ss.goes_class, ss.region))
-    
     for peakdt, g_class, region_no in solarsofttuples:
         plt.annotate(region_no, xy=(mdates.date2num(peakdt + timedelta(minutes=10)), g_class*Decimal(2)), rotation=45 )
                 #bbox=dict(boxstyle='round', fc='white', alpha=0.5))
         #plt.annotate('.', xy=(mdates.date2num(x), y), rotation=45 )
-   
+
     #Define Axes limits
     axes = plt.gca()
     axes.set_yscale("log")
@@ -232,13 +238,12 @@ def plot_data(xrayfluxobjects, solarsoftobjects, issixhour=True, title='GOES X-r
     axes.set_title(title, y=1.07)
     axes.set_ylabel('Watts m$^{-2}$')
     axes.set_xlabel('Universal Time')
-    
+
     ax2 = axes.twinx()
     ax2.set_yscale("log")
     ax2.set_ylim(1e-9, 1e-2)
     ax2.set_yticks((1e-9, 1e-8, 1e-7, 1e-6, 1e-5, 1e-4, 1e-3, 1e-2))
     ax2.set_yticklabels((' ', 'A', 'B', 'C', 'M', 'X', ' '))
-
     axes.yaxis.grid(True, 'major', ls='-')
     axes.xaxis.grid(True, 'major')
     
@@ -253,6 +258,7 @@ def plot_data(xrayfluxobjects, solarsoftobjects, issixhour=True, title='GOES X-r
         startdt = datetime(dtn.year, dtn.month, dtn.day, dtn.hour, 0, 0) - timedelta(hours=7)
         for i in range(0,7):
             xticks.append(startdt + timedelta(hours=i))
+            
             
         utcnow = datetime.utcnow()
         plt.figtext(0, 0.02, utcnow.strftime("Updated: %d %b %Y %H:%M UT"))
@@ -270,7 +276,6 @@ def plot_data(xrayfluxobjects, solarsoftobjects, issixhour=True, title='GOES X-r
         utcnow = datetime.utcnow()
         plt.figtext(0, 0.02, utcnow.strftime("Updated: %d %b %Y %H:%M UT"))
         plt.figtext(0.6,0.92,startdt.strftime("Begin: %d %b %Y %H:%M UT"))
-
     
     #this comes a little later to override whatever came before.
     
@@ -281,6 +286,7 @@ def plot_data(xrayfluxobjects, solarsoftobjects, issixhour=True, title='GOES X-r
     #axes.xaxis.set_major_locator(HourLocator(byhour=range(24)))
     
     #figure.show()
+    #print filename
     figure.savefig(filename)
     print "done plotting"
 
@@ -348,5 +354,5 @@ def fakemain():
     
     
 if __name__ == "__main__":
-    fakemain()
+    main()
 

@@ -5,3 +5,5 @@
 */.ipynb_checkpoints/
 *.pyc
 *.orig
+src/swp_flares.db-journal
+src/*.png

@@ -125,7 +125,7 @@ dt3days = dtnow - datetime.timedelta(days=3)
 As well as the dtnow that we do above, we also need to specify the threshold for region annotation. The threshold will be M-class (which corresponds to greater than 10*-5). This would be specified as "WHERE GOES_CLASS M >= 1.0e-*-5" 
 
 
-###Plotting
+###Plottingcd
 - import matplotlib pyplot module
 - Configure/create the axes
 - Put the data into the format required by matplotlib (probably using a list comprehension) 
