@@ -116,8 +116,9 @@ def insert_solarsoft_data(ss_result_set, session):
     solarsoft_object_list = []
     for row in ss_result_set:
         res = session.query(Solarsoft).filter(Solarsoft.ut_datetime==row.ut_datetime).all()
-        if len(res) == 1: 
-            session.delete(res[0])
+        if len(res) >= 1: 
+            for r in res:
+                session.delete(r)
         solarsoft_object_list.append(row)
       
     session.add_all(solarsoft_object_list) 
@@ -183,8 +184,9 @@ def insert_xrayflux_data(xr_result_set, session):
     xrayflux_object_list = []
     for row in xr_result_set:
         res = session.query(Xrayflux).filter(Xrayflux.ut_datetime==row.ut_datetime).all()
-        if len(res) == 1: 
-            session.delete(res[0])
+        if len(res) >= 1: 
+            for r in res:
+                session.delete(r)
         xrayflux_object_list.append(row)
     
     session.add_all(xrayflux_object_list) 
@@ -207,14 +209,21 @@ def plot_data(xrayfluxobjects, solarsoftobjects, issixhour=True, title='GOES X-r
     ut_datetimes = []
     shorts = []
     longxs = []
-    
+   
     for xr in xrayfluxobjects:
         ut_datetimes.append(xr.ut_datetime)
         shorts.append(xr.short)
         longxs.append(xr.longx)
     
+    solarsofttuples = []
+    for ss in solarsoftobjects:
+        solarsofttuples.append((ss.peak, ss.goes_class, ss.region, ss.derived_position))
+    
     #Make Plot
-    print "plotting"
+    print "plotting" 
+    #print "ut_datetimes = {}".format(ut_datetimes[1000:1500])
+    #print "longxs = {}".format(longxs[1000:1500])
+    #print "solarsofttuples = {}".format(solarsofttuples)
     figure = plt.figure()
 
     plt.plot(ut_datetimes, shorts, 'b', label='0.5--4.0 $\AA$', lw=1.2)
@@ -222,12 +231,11 @@ def plot_data(xrayfluxobjects, solarsoftobjects, issixhour=True, title='GOES X-r
     plt.figtext(.95, .40, "GOES 15 0.5-4.0 A", color='blue', size='large', rotation='vertical')
     plt.figtext(.95, .75, "GOES 15 1.0-8.0 A", color='red', size='large', rotation='vertical')
     
-    
-    solarsofttuples = []
-    for ss in solarsoftobjects:
-        solarsofttuples.append((ss.peak, ss.goes_class, ss.region))
-    for peakdt, g_class, region_no in solarsofttuples:
-        plt.annotate(region_no, xy=(mdates.date2num(peakdt + timedelta(minutes=10)), g_class*Decimal(2)), rotation=45 )
+    for peakdt, g_class, region_no, position in solarsofttuples:
+        if region_no != "":
+            plt.annotate(region_no, xy=(mdates.date2num(peakdt + timedelta(minutes=10)), g_class*Decimal(2)), rotation=45)
+        else:
+            plt.annotate(position, xy=(mdates.date2num(peakdt + timedelta(minutes=10)), g_class*Decimal(2)), rotation=45)   
                 #bbox=dict(boxstyle='round', fc='white', alpha=0.5))
         #plt.annotate('.', xy=(mdates.date2num(x), y), rotation=45 )
 
@@ -300,12 +308,12 @@ def makeaplot(session, issixhour=True):
         title = "GOES X-ray Flux (5 minute data)"
         
     xrayobjects = query_xr(session, theduration)
-    solarsoftobjects = query_ss(session, theduration, Decimal(5e-6))
+    solarsoftobjects = query_ss(session, theduration, Decimal(1e-6))
     #plot graph and save to file
     plot_data(xrayobjects, solarsoftobjects, issixhour, title) 
 
 
-def main():
+def main(getoldstuff=False):
     #setup database for the session 
     session = initialise_database()
     
@@ -316,30 +324,30 @@ def main():
     #get solarsoft data
     ss_result_set = get_solarsoft_data()
     ss_result_set += get_solarsoft_data(dt)
-    
     #insert into db
     insert_solarsoft_data(ss_result_set, session)
     
-    #get more solarsoft data
-    ss_result_set = get_solarsoft_data(dt - timedelta(days=1))
-    ss_result_set += get_solarsoft_data(dt - timedelta(days=2))
-    
-    #and insert it
-    insert_solarsoft_data(ss_result_set, session)
-
     #get xrayflux data, 
     xr_result_set = get_xrayflux_data()
     xr_result_set += get_xrayflux_data(dt)
-    
     #insert it
     insert_xrayflux_data(xr_result_set, session)
     
-    #get more xrayflux data
-    xr_result_set = get_xrayflux_data(dt - timedelta(days=1))
-    xr_result_set += get_xrayflux_data(dt - timedelta(days=2))
-   
-    #and insert it
-    insert_xrayflux_data(xr_result_set, session)
+    
+    if getold stuff:
+        #get more solarsoft data
+        ss_result_set = get_solarsoft_data(dt - timedelta(days=1))
+        ss_result_set += get_solarsoft_data(dt - timedelta(days=2))
+        
+        #and insert it
+        insert_solarsoft_data(ss_result_set, session)
+    
+        #get more xrayflux data
+        xr_result_set = get_xrayflux_data(dt - timedelta(days=1))
+        xr_result_set += get_xrayflux_data(dt - timedelta(days=2))
+       
+        #and insert it
+        insert_xrayflux_data(xr_result_set, session)
 
 
     makeaplot(session, True) #6hour
