@@ -233,9 +233,9 @@ def plot_data(xrayfluxobjects, solarsoftobjects, issixhour=True, title='GOES X-r
     
     for peakdt, g_class, region_no, position in solarsofttuples:
         if region_no != "":
-            plt.annotate(region_no, xy=(mdates.date2num(peakdt + timedelta(minutes=10)), g_class*Decimal(2)), rotation=45)
+            plt.annotate(region_no, xy=(mdates.date2num(peakdt + timedelta(minutes=5)), g_class*Decimal(1.8)), rotation=45, fontsize=8)
         else:
-            plt.annotate(position, xy=(mdates.date2num(peakdt + timedelta(minutes=10)), g_class*Decimal(2)), rotation=45)   
+            plt.annotate(position, xy=(mdates.date2num(peakdt + timedelta(minutes=5)), g_class*Decimal(1.8)), rotation=45, fontsize=8)   
                 #bbox=dict(boxstyle='round', fc='white', alpha=0.5))
         #plt.annotate('.', xy=(mdates.date2num(x), y), rotation=45 )
 
@@ -308,7 +308,7 @@ def makeaplot(session, issixhour=True):
         title = "GOES X-ray Flux (5 minute data)"
         
     xrayobjects = query_xr(session, theduration)
-    solarsoftobjects = query_ss(session, theduration, Decimal(1e-6))
+    solarsoftobjects = query_ss(session, theduration, Decimal(5e-6))
     #plot graph and save to file
     plot_data(xrayobjects, solarsoftobjects, issixhour, title) 
 
@@ -334,7 +334,7 @@ def main(getoldstuff=False):
     insert_xrayflux_data(xr_result_set, session)
     
     
-    if getold stuff:
+    if getoldstuff:
         #get more solarsoft data
         ss_result_set = get_solarsoft_data(dt - timedelta(days=1))
         ss_result_set += get_solarsoft_data(dt - timedelta(days=2))
