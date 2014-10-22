@@ -16,7 +16,7 @@ import pylab
 from decimal import Decimal
 from swp_database import Base, Solarsoft, Xrayflux
 import os
-
+import sys
 
 def initialise_database():
     engine = create_engine('sqlite:///swp_flares.db')
@@ -308,7 +308,7 @@ def makeaplot(session, issixhour=True):
         title = "GOES X-ray Flux (5 minute data)"
         
     xrayobjects = query_xr(session, theduration)
-    solarsoftobjects = query_ss(session, theduration, Decimal(5e-6))
+    solarsoftobjects = query_ss(session, theduration, Decimal(1e-5))
     #plot graph and save to file
     plot_data(xrayobjects, solarsoftobjects, issixhour, title) 
 
@@ -352,15 +352,28 @@ def main(getoldstuff=False):
 
     makeaplot(session, True) #6hour
     makeaplot(session, False) #3day
-    
+   
+        
 def fakemain():
     #setup database for the session 
     session = initialise_database()
     makeaplot(session, True) #6hour
     makeaplot(session, False) #3day
-    
-    
-    
+
+          
 if __name__ == "__main__":
-    main()
+    usage = "\nThis is the usage function:\n    USAGE: python src_code.py [True/False]"
+    
+    if len(sys.argv) == 1:
+        main()
+    elif len(sys.argv) == 2:
+        if sys.argv[1] == "True":
+            main(True)
+        elif sys.argv[1] == "False":
+            main()
+        else:
+           print usage
+    else:   
+        print usage   
+                  
 
