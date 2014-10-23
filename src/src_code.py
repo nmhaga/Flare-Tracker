@@ -88,11 +88,14 @@ def read_solarsoft_data(html_content):
     return resultset
     
 def convert_flare_format_into_decimal(GOES_class):
-    conversion_lookup_table = {'X':-4, 'M':-5, 'C':-6, 'B':-7, 'A':-8}
-    class_letter = GOES_class[0]
-    class_exponent = conversion_lookup_table[class_letter]
-    digits = float(GOES_class[1:])  #TODO CHECK IF THERE SHOULD BE DECIMAL/NUMERIC
-    thenumber = digits * (10 ** class_exponent)
+    try:
+        conversion_lookup_table = {'X':-4, 'M':-5, 'C':-6, 'B':-7, 'A':-8}
+        class_letter = GOES_class[0]
+        class_exponent = conversion_lookup_table[class_letter]
+        digits = float(GOES_class[1:])  #TODO CHECK IF THERE SHOULD BE DECIMAL/NUMERIC
+        thenumber = digits * (10 ** class_exponent)
+    except Exception, e:
+        raise Exception("Error converting flare format to decimal", e)
     return thenumber
     
 def get_peakdate_from_startdate(start, peak):
@@ -298,7 +301,10 @@ def plot_data(xrayfluxobjects, solarsoftobjects, issixhour=True, title='GOES X-r
     figure.savefig(filename)
     print "done plotting"
 
-def makeaplot(session, issixhour=True):
+def makeaplot(session, issixhour=True, threshold=None):
+    if threshold is None: 
+        threshold = Decimal(1e-5)
+        
     theduration = timedelta(hours=6)
     
     title = "GOES X-ray Flux (1 minute data)"
@@ -308,12 +314,13 @@ def makeaplot(session, issixhour=True):
         title = "GOES X-ray Flux (5 minute data)"
         
     xrayobjects = query_xr(session, theduration)
-    solarsoftobjects = query_ss(session, theduration, Decimal(1e-5))
+    solarsoftobjects = query_ss(session, theduration, threshold)
     #plot graph and save to file
     plot_data(xrayobjects, solarsoftobjects, issixhour, title) 
 
 
-def main(getoldstuff=False):
+def main(getoldstuff=False, threshold=None):
+
     #setup database for the session 
     session = initialise_database()
     
@@ -350,8 +357,8 @@ def main(getoldstuff=False):
         insert_xrayflux_data(xr_result_set, session)
 
 
-    makeaplot(session, True) #6hour
-    makeaplot(session, False) #3day
+    makeaplot(session, True, threshold) #6hour
+    makeaplot(session, False, threshold) #3day
    
         
 def fakemain():
@@ -359,20 +366,50 @@ def fakemain():
     session = initialise_database()
     makeaplot(session, True) #6hour
     makeaplot(session, False) #3day
+    
 
+def checkarg(thestring):
+    if thestring.startswith("T") or thestring.startswith("F"):
+        if thestring == "True":
+            return ("getoldstuff", True)
+        elif thestring == "False":
+            return ("getoldstuff", False)
+        else:
+            return ("fail", 0)
+    else:
+        try:
+            decimal = convert_flare_format_into_decimal(thestring)
+            return ("threshold", decimal)
+        except Exception, e:
+            print e
+            return ("failure", 0)
           
 if __name__ == "__main__":
-    usage = "\nThis is the usage function:\n    USAGE: python src_code.py [True/False]"
+    usage = "USAGE: python src_code.py [True/False] [GOES_Class]\n The arguments can be in any order. GOES_Class must be a letter (A,B,C,M,X) followed by a number 1 or 1.4, like C1.4."
     
     if len(sys.argv) == 1:
-        main()
+        main() 
     elif len(sys.argv) == 2:
-        if sys.argv[1] == "True":
-            main(True)
-        elif sys.argv[1] == "False":
-            main()
-        else:
-           print usage
+        #then it's one or the other
+        mytype, value = checkarg(sys.argv[1])
+        if mytype == "getoldstuff":
+            main(getoldstuff=value)
+        elif mytype == "threshold":
+            main(threshold=value)
+        else: #fail
+            print usage
+     
+    elif len(sys.argv) == 3:
+        #then it's both
+        mytype, value = checkarg(sys.argv[1])
+        mytype2, value2 = checkarg(sys.argv[2])
+        if mytype == "getoldstuff" and mytype2 == "threshold":
+            main(getoldstuff=value, threshold=value2)
+        elif mytype == "threshold" and mytype2 == "getoldstuff":
+            main(getoldstuff=value2, threshold=value)
+        else: #too many of one type or fail. 
+            print usage
+        
     else:   
         print usage   
                   
