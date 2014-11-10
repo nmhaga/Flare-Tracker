@@ -2,9 +2,9 @@ Functional Specification
 ========================
 ######Space Weather X-Ray flux with Active Region Numbers Display
 ######Nomajama Mhaga
-######Last Update: 05 September 2014
+######Last Update: 5 November 2014
 ######Version 0.1
-This document explains the fuctional design of the X-ray plot from GOES with annotations of Active Region. 
+This document explains the fuctional design of the X-ray plot from GOES with annotations of Active Region numbers. 
 
 Overview
 ---------
@@ -12,7 +12,14 @@ The Flare-Tracker program will pull data from online resources every 1 minutes. 
 
 Technical Design
 ----------------
-The program will be written in Python, using sqlite3 (connecting to python with SQLALchemy) and matplotlib. The data will be pulled from online sources, and inserted into a database. Every minute a graph will be plotted using matplotlib annotating the areas with the flare i.e from C to X or higher level Class. In a case where there is no active region number, we assume it is an unnamed region and annotate with the derived position.
+The program will be written in Python, using sqlite3 (connecting to python with SQLALchemy) and matplotlib. The data will be pulled from online sources, and inserted into a database. Every minute a graph will be plotted using matplotlib annotating the areas with the flare i.e from M to X or higher level Class. In a case where there is no active region number, we assume it is an unnamed region and annotate with the derived position.
+
+Libraries and Modules to install
+---------------------------------
+1. Python on Linux
+2. Sqlite3 
+3. URLLib
+4. BeautifulSoup
 
 ###Program Flow Chart
 
@@ -34,11 +41,12 @@ The program will be written in Python, using sqlite3 (connecting to python with 
 ###Conditions
 
 1. Solar soft (Annotations)
-   if class level is greater or equal to C: Annotate with Active region
+   if class level is greater or equal to M: Annotate with Active region
    Otherwise do not annotate
+2.    
 
 ###Data Extraction and Parsing
-//For both of GOES and SolarSoft, we use the standard URL fetching library, URLLib. Then we make a request for the URL and get the HTML content. (split this out, only put detail into the subsections where required.)
+For both of GOES and SolarSoft, we use the standard URL fetching library, URLLib. Then we make a request for the URL and get the HTML content. (split this out, only put detail into the subsections where required.)
 
 URLError will be raised when there is a problem with the network connection.
 We can be prepared for the HTTPError or URLError by an approach of this nature:
@@ -95,6 +103,7 @@ For both of them the data will come as a list of tuples.
 - To persist the objects to database use session.add()
 - Issue all remaining changes to the database and commit with session.commit()
 - You can Rollback in case there is any error with session.rollback(), but we won't implement this yet. 
+- To make sure we do not insert duplicates, we first check if the object exists. If it exists we delete that one and insert the new one.
 
 ###Pulling from database
 - import module to access SQLAlchemy database 
@@ -107,18 +116,17 @@ For both of them the data will come as a list of tuples.
 
 #### Pull x-ray data: 
 
-We want to specify the date between now and 3 days ago. we can do this in python using the datetime and timedelta functions.
+We want to specify the date between now and 6 hours ago. Wwe also want to do the same with the three day plot. We can do this in python using the datetime and timedelta functions.
 We want it to snap to the nearest date. to do this: 
  
 We set up the datetime where hour, minute and second is equal to zero.
 By the end of the day we want the plot to be full.
-
-##come back to this! Think about how to make the graph look niiice. 
+for example:
+ 
 ````python
 dtnow = datetime.datetime.utcnow()
 dt3days = dtnow - datetime.timedelta(days=3)
-3day_ago_data = session.query(data).filter(data.datetime > dt3days).all()
-#(fetch data where datetime <=  
+3day_ago_data = session.query(data).filter(data.datetime > dt3days).all() 
 ````
 
 #### Pull solarsoft data
@@ -126,7 +134,7 @@ As well as the dtnow that we do above, we also need to specify the threshold for
 
 
 ###Plotting
-We will plot both the 3day data and the 6 hour data 
+We will plot both the 3day and the 6 hour plot. 
 - import matplotlib pyplot module
 - Configure/create the axes
 - Put the data into the format required by matplotlib (probably using a list comprehension) 
@@ -138,14 +146,22 @@ The 'updated' text displayed at the lower left corner includes the datetime the 
 The background colour will be white. 
 The short plot will be Blue
 The long plot will be Red
-Annotations will be in black and we want to annotate the long only. 
+
 The y-scale needs to be logorithmic and limit the y axis from (1e-9 to 1e-2)
 We will want to mark the class scale on the other y-axis, i.e A, B, C, M, X
+
+We want to be able to get old data and plot it just incase there is data missing.
+We will run it on the command line as True/False.
+We also want to run the code on certain threshold on the command line.
+
+Annotations will be in black and we want to annotate the long only. 
+In-order for the annotation not to overlap the peak, we will move it up 1.8 to 2.0 log points
+The annotation will be rotated by 45 degrees.
 
 Matplolib requires the $Display environment variable, so we have to call matplotlib.use('Agg') before importing matplotlib.py. #http://stackoverflow.com/questions/4931376/generating-matplotlib-graphs-without-a-running-x-server
 
 CRON will be used to process the program to run every minute of everyday. * * * * * cd ~/Documents/SWP/src/ && python src_code.py >> ~/Documents/src_code.log 2>&1
-2>&1 is important because it lets yo write errors in the same log file.
+2>&1 is important because it lets you write errors in the same log file.
 
 
 ###Database Format
