@@ -228,7 +228,7 @@ def plot_data(xrayfluxobjects, solarsoftobjects, issixhour=True, title='GOES X-r
     #print "longxs = {}".format(longxs[1000:1500])
     #print "solarsofttuples = {}".format(solarsofttuples)
     figure = plt.figure()
-
+ 
     plt.plot(ut_datetimes, shorts, 'b', label='0.5--4.0 $\AA$', lw=1.2)
     plt.plot(ut_datetimes, longxs, 'r', label='1.0--8.0 $\AA$', lw=1.2)
     plt.figtext(.95, .40, "GOES 15 0.5-4.0 A", color='blue', size='large', rotation='vertical')
@@ -262,8 +262,12 @@ def plot_data(xrayfluxobjects, solarsoftobjects, issixhour=True, title='GOES X-r
     
     dtn = datetime.now()    
     xticks = []
+    
+    path = '/home/nmhaga/Documents/SWP/src/Plots'
+    
     if issixhour: #grid and ticks should be hourly     
-        filename = "latest6hr.png"      
+        filename = "latest6hr.png" 
+        filename = os.path.join(path, filename)     
         formatter = mdates.DateFormatter('%H:%M')
         locator = mdates.MinuteLocator(interval=15)
         startdt = datetime(dtn.year, dtn.month, dtn.day, dtn.hour, 0, 0) - timedelta(hours=7)
@@ -277,6 +281,7 @@ def plot_data(xrayfluxobjects, solarsoftobjects, issixhour=True, title='GOES X-r
     
     else:
         filename = "latest3day.png" 
+        filename = os.path.join(path, filename) 
         formatter = mdates.DateFormatter('%b %d')
         locator = mdates.HourLocator(interval=6)
         axes.xaxis.set_major_formatter(formatter)
@@ -294,10 +299,8 @@ def plot_data(xrayfluxobjects, solarsoftobjects, issixhour=True, title='GOES X-r
     axes.set_xlim(xticks[0], xticks[-1])        
     axes.xaxis.set_minor_locator(locator)
     axes.xaxis.set_major_formatter(formatter)
-    #axes.xaxis.set_major_locator(HourLocator(byhour=range(24)))
+    #axes.xaxis.set_major_locator(HourLocator(byhour=range(24))
     
-    #figure.show()
-    #print filename
     figure.savefig(filename)
     print "done plotting"
 
