@@ -132,7 +132,11 @@ class test_XrayFlux_database_parts_of_src_code(unittest.TestCase):
         res = self.session.query(Xrayflux).filter(Xrayflux.ut_datetime == self.dt).all()
         
         self.assertEqual(len(res), 1)    
+
+class test_plotting_XR_data(inittest.TestCase)
     
+    def test_plotting(self):
+        
         
 if __name__ == "__main__":
     unittest.main()

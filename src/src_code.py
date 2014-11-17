@@ -263,8 +263,6 @@ def plot_data(xrayfluxobjects, solarsoftobjects, issixhour=True, title='GOES X-r
     dtn = datetime.now()    
     xticks = []
     
-    path = '/home/nmhaga/Documents/SWP/src/Plots'
-    
     if issixhour: #grid and ticks should be hourly     
         filename = "latest6hr.png" 
         filename = os.path.join(path, filename)     
