@@ -17,6 +17,7 @@ from decimal import Decimal
 from swp_database import Base, Solarsoft, Xrayflux
 import os
 import sys
+import argparse
 
 def initialise_database():
     engine = create_engine('sqlite:///swp_flares.db')
@@ -258,11 +259,10 @@ def plot_data(xrayfluxobjects, solarsoftobjects, issixhour=True, title='GOES X-r
     axes.yaxis.grid(True, 'major', ls='-')
     axes.xaxis.grid(True, 'major')
     
-   #axes.legend(loc=3, ncol=2, bbox_to_anchor=(0., 1.02, 1., .102), borderaxespad=0.)
-    
+ 
     dtn = datetime.now()    
     xticks = []
-    
+    path = '/home/nmhaga/Documents/SWP/src/Plots'
     if issixhour: #grid and ticks should be hourly     
         filename = "latest6hr.png" 
         filename = os.path.join(path, filename)     
@@ -303,6 +303,7 @@ def plot_data(xrayfluxobjects, solarsoftobjects, issixhour=True, title='GOES X-r
     print "done plotting"
 
 def makeaplot(session, issixhour=True, threshold=None):
+    #threshold should be in decimal format
     if threshold is None: 
         threshold = Decimal(1e-5)
         
@@ -357,61 +358,18 @@ def main(getoldstuff=False, threshold=None):
         #and insert it
         insert_xrayflux_data(xr_result_set, session)
 
-
-    makeaplot(session, True, threshold) #6hour
-    makeaplot(session, False, threshold) #3day
-   
-        
-def fakemain():
-    #setup database for the session 
-    session = initialise_database()
-    makeaplot(session, True) #6hour
-    makeaplot(session, False) #3day
-    
-
-def checkarg(thestring):
-    if thestring.startswith("T") or thestring.startswith("F"):
-        if thestring == "True":
-            return ("getoldstuff", True)
-        elif thestring == "False":
-            return ("getoldstuff", False)
-        else:
-            return ("fail", 0)
-    else:
-        try:
-            decimal = convert_flare_format_into_decimal(thestring)
-            return ("threshold", decimal)
-        except Exception, e:
-            print e
-            return ("failure", 0)
-          
+    numberthreshold = convert_flare_format_into_decimal(threshold)
+    makeaplot(session, True, numberthreshold) #6hour
+    makeaplot(session, False, numberthreshold) #3day
+ 
+  
 if __name__ == "__main__":
-    usage = "USAGE: python src_code.py [True/False] [GOES_Class]\n The arguments can be in any order. GOES_Class must be a letter (A,B,C,M,X) followed by a number 1 or 1.4, like C1.4."
+            
+    parser = argparse.ArgumentParser()
+    parser.add_argument("-f", "--flarestrength", help="Number of the cutoff Flare in format 'C4.7'")
+    parser.add_argument("-o", "--getoldstuff", help="Present if program should fetch older data from 3 days ago (takes longer)", action="store_true")
+    args = parser.parse_args()
     
-    if len(sys.argv) == 1:
-        main() 
-    elif len(sys.argv) == 2:
-        #then it's one or the other
-        mytype, value = checkarg(sys.argv[1])
-        if mytype == "getoldstuff":
-            main(getoldstuff=value)
-        elif mytype == "threshold":
-            main(threshold=value)
-        else: #fail
-            print usage
-     
-    elif len(sys.argv) == 3:
-        #then it's both
-        mytype, value = checkarg(sys.argv[1])
-        mytype2, value2 = checkarg(sys.argv[2])
-        if mytype == "getoldstuff" and mytype2 == "threshold":
-            main(getoldstuff=value, threshold=value2)
-        elif mytype == "threshold" and mytype2 == "getoldstuff":
-            main(getoldstuff=value2, threshold=value)
-        else: #too many of one type or fail. 
-            print usage
-        
-    else:   
-        print usage   
-                  
+    main(args.getoldstuff, args.flarestrength)
 
+  
