@@ -23,15 +23,6 @@ def initialise_database():
     engine = create_engine('sqlite:///swp_flares.db')
     Base.metadata.create_all(engine)   
     session = Session(bind=engine)
-    #engine = create_engine('sqlite:///swp_flares.db')
-    #Base = declarative_base(engine)
-    #session = loadSession()
-
-    #def loadSession():
-    #     metadata = Base.metadata
-    #    Session = sessionmaker(bind=engine)
-    #    session = Session()
-    #    return session
     return session
 
 #requesting Solarsoft data.
@@ -89,6 +80,8 @@ def read_solarsoft_data(html_content):
     return resultset
     
 def convert_flare_format_into_decimal(GOES_class):
+    if GOES_class is None:
+        return None
     try:
         conversion_lookup_table = {'X':-4, 'M':-5, 'C':-6, 'B':-7, 'A':-8}
         class_letter = GOES_class[0]
@@ -133,10 +126,6 @@ def query_ss(session, duration, minimum):
     six_hour_data = current_time - duration
     res = session.query(Solarsoft).filter(Solarsoft.ut_datetime > six_hour_data).filter(Solarsoft.goes_class > minimum).all()
     return res
-    #print res
-    #for row in res:
-        #print row.event, row.ut_datetime, row.peak, row.goes_class, row.derived_position, row.region
-
      
 #Extrating X-ray flux data 
 def generate_filename(date, cadence=1):
@@ -202,12 +191,7 @@ def query_xr(session, duration):
     six_hours_data = current_time - duration
     res = session.query(Xrayflux).filter(Xrayflux.ut_datetime > six_hours_data).order_by(Xrayflux.ut_datetime).all()
     return res
-    #print res
-    #for row in res:
-        #print row.ut_datetime, row.short, row.longx
         
-     
-
 def plot_data(xrayfluxobjects, solarsoftobjects, issixhour=True, title='GOES X-ray Flux (1 minute data)'):
     # reformat data:
     ut_datetimes = []
@@ -225,11 +209,9 @@ def plot_data(xrayfluxobjects, solarsoftobjects, issixhour=True, title='GOES X-r
     
     #Make Plot
     print "plotting" 
-    #print "ut_datetimes = {}".format(ut_datetimes[1000:1500])
-    #print "longxs = {}".format(longxs[1000:1500])
-    #print "solarsofttuples = {}".format(solarsofttuples)
-    figure = plt.figure()
- 
+    my_dpi = 100 #this gives a size on this machine of 800x600px.
+    figure = plt.figure(figsize=(800/my_dpi,600/my_dpi), dpi = my_dpi)
+    # ^^ from http://stackoverflow.com/a/13714720/3714005 
     plt.plot(ut_datetimes, shorts, 'b', label='0.5--4.0 $\AA$', lw=1.2)
     plt.plot(ut_datetimes, longxs, 'r', label='1.0--8.0 $\AA$', lw=1.2)
     plt.figtext(.95, .40, "GOES 15 0.5-4.0 A", color='blue', size='large', rotation='vertical')
@@ -240,9 +222,7 @@ def plot_data(xrayfluxobjects, solarsoftobjects, issixhour=True, title='GOES X-r
             plt.annotate(region_no, xy=(mdates.date2num(peakdt + timedelta(minutes=5)), g_class*Decimal(1.8)), rotation=45, fontsize=8)
         else:
             plt.annotate(position, xy=(mdates.date2num(peakdt + timedelta(minutes=5)), g_class*Decimal(1.8)), rotation=45, fontsize=8)   
-                #bbox=dict(boxstyle='round', fc='white', alpha=0.5))
-        #plt.annotate('.', xy=(mdates.date2num(x), y), rotation=45 )
-
+                
     #Define Axes limits
     axes = plt.gca()
     axes.set_yscale("log")
@@ -283,7 +263,7 @@ def plot_data(xrayfluxobjects, solarsoftobjects, issixhour=True, title='GOES X-r
         formatter = mdates.DateFormatter('%b %d')
         locator = mdates.HourLocator(interval=6)
         axes.xaxis.set_major_formatter(formatter)
-        startdt = datetime(dtn.year, dtn.month, dtn.day, 0, 0, 0) - timedelta(days=2)
+        startdt = datetime(dtn.year, dtn .month, dtn.day, 0, 0, 0) - timedelta(days=2)
         for i in range(0,4):
             xticks.append(startdt + timedelta(days=i))
         
@@ -299,7 +279,7 @@ def plot_data(xrayfluxobjects, solarsoftobjects, issixhour=True, title='GOES X-r
     axes.xaxis.set_major_formatter(formatter)
     #axes.xaxis.set_major_locator(HourLocator(byhour=range(24))
     
-    figure.savefig(filename)
+    figure.savefig(filename, dpi = my_dpi)
     print "done plotting"
 
 def makeaplot(session, issixhour=True, threshold=None):
