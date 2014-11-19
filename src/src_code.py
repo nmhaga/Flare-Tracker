@@ -192,7 +192,10 @@ def query_xr(session, duration):
     res = session.query(Xrayflux).filter(Xrayflux.ut_datetime > six_hours_data).order_by(Xrayflux.ut_datetime).all()
     return res
         
-def plot_data(xrayfluxobjects, solarsoftobjects, issixhour=True, title='GOES X-ray Flux (1 minute data)'):
+def plot_data(xrayfluxobjects, solarsoftobjects, issixhour=True, title='GOES X-ray Flux (1 minute data)', path=None):
+    if path is None:
+        path=""
+        
     # reformat data:
     ut_datetimes = []
     shorts = []
@@ -242,7 +245,6 @@ def plot_data(xrayfluxobjects, solarsoftobjects, issixhour=True, title='GOES X-r
  
     dtn = datetime.now()    
     xticks = []
-    path = '/home/nmhaga/Documents/SWP/src/Plots'
     if issixhour: #grid and ticks should be hourly     
         filename = "latest6hr.png" 
         filename = os.path.join(path, filename)     
@@ -279,10 +281,16 @@ def plot_data(xrayfluxobjects, solarsoftobjects, issixhour=True, title='GOES X-r
     axes.xaxis.set_major_formatter(formatter)
     #axes.xaxis.set_major_locator(HourLocator(byhour=range(24))
     
-    figure.savefig(filename, dpi = my_dpi)
-    print "done plotting"
+    try:
+        figure.savefig(filename, dpi = my_dpi)   
+        print "done plotting"
 
-def makeaplot(session, issixhour=True, threshold=None):
+    except IOError, e:
+        print "Could not find the path!! Please ensure that when providing a path you choose a valid path that exists!"
+        
+        
+
+def makeaplot(session, issixhour=True, threshold=None, path=None):
     #threshold should be in decimal format
     if threshold is None: 
         threshold = Decimal(1e-5)
@@ -298,10 +306,10 @@ def makeaplot(session, issixhour=True, threshold=None):
     xrayobjects = query_xr(session, theduration)
     solarsoftobjects = query_ss(session, theduration, threshold)
     #plot graph and save to file
-    plot_data(xrayobjects, solarsoftobjects, issixhour, title) 
+    plot_data(xrayobjects, solarsoftobjects, issixhour, title, path) 
 
 
-def main(getoldstuff=False, threshold=None):
+def main(getoldstuff=False, threshold=None, path=None):
 
     #setup database for the session 
     session = initialise_database()
@@ -339,8 +347,8 @@ def main(getoldstuff=False, threshold=None):
         insert_xrayflux_data(xr_result_set, session)
 
     numberthreshold = convert_flare_format_into_decimal(threshold)
-    makeaplot(session, True, numberthreshold) #6hour
-    makeaplot(session, False, numberthreshold) #3day
+    makeaplot(session, True, numberthreshold, path) #6hour
+    makeaplot(session, False, numberthreshold, path) #3day
  
   
 if __name__ == "__main__":
@@ -348,8 +356,9 @@ if __name__ == "__main__":
     parser = argparse.ArgumentParser()
     parser.add_argument("-f", "--flarestrength", help="Number of the cutoff Flare in format 'C4.7'")
     parser.add_argument("-o", "--getoldstuff", help="Present if program should fetch older data from 3 days ago (takes longer)", action="store_true")
+    parser.add_argument("-p", "--path", help="Specify the folder path where the plots should be stored")
     args = parser.parse_args()
     
-    main(args.getoldstuff, args.flarestrength)
+    main(args.getoldstuff, args.flarestrength, args.path)
 
   
