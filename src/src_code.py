@@ -142,7 +142,7 @@ def get_xrayflux_data(date=None):
     
     print "Trying to get XrayFlux data\n--------------------------"
     try:
-        response = urlopen('http://www.swpc.noaa.gov/ftpdir/lists/xray/'+filename)
+        response = urlopen('ftp://ftp.swpc.noaa.gov/pub/lists/xray/'+filename)
         print 'Everything is fine for Xrayflux data'
     except HTTPError as e:
         print "The server couldn't fulfill the request."
